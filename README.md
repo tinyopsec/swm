@@ -2,11 +2,18 @@
 
 > **Note:** Project was renamed from `nwm` to `swm` (Simple Window Manager) in April 2026.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/tinyopsec/swm-assets/main/screenshots/monocle.png" alt="Monocle logo" width="40%">
+</p>
+<div align="center">
+
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Issues](https://img.shields.io/github/issues/tinyopsec/swm.svg)](https://github.com/tinyopsec/swm/issues)
 [![Stars](https://img.shields.io/github/stars/tinyopsec/swm.svg)](https://github.com/tinyopsec/swm/stargazers)
 [![C99](https://img.shields.io/badge/C-C99%20%2F%20POSIX-lightgrey.svg)]()
 [![LOC](https://img.shields.io/badge/source-under%201000%20lines-brightgreen.svg)]()
+
+</div>
 
 **swm** (Simple Window Manager) is a minimal, lightweight X11 window manager written in POSIX C99. Under 1000 lines across two files. No config files, no status bar, no runtime dependencies beyond Xlib. Tiling, floating, and monocle layouts. Tag-based workspaces. Compile-time configuration via `swm.h`. A clean dwm alternative for users who want full control without the patch surface.
 
