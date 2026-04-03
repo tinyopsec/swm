@@ -1,24 +1,26 @@
-# nwm - Nano Window Manager
+# swm - Simple Window Manager
+
+> **Note:** Project was renamed from `nwm` to `swm` (Simple Window Manager) in April 2026.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Issues](https://img.shields.io/github/issues/tinyopsec/nwm.svg)](https://github.com/tinyopsec/nwm/issues)
-[![Stars](https://img.shields.io/github/stars/tinyopsec/nwm.svg)](https://github.com/tinyopsec/nwm/stargazers)
+[![Issues](https://img.shields.io/github/issues/tinyopsec/swm.svg)](https://github.com/tinyopsec/swm/issues)
+[![Stars](https://img.shields.io/github/stars/tinyopsec/swm.svg)](https://github.com/tinyopsec/swm/stargazers)
 [![C99](https://img.shields.io/badge/C-C99%20%2F%20POSIX-lightgrey.svg)]()
 [![LOC](https://img.shields.io/badge/source-under%201000%20lines-brightgreen.svg)]()
 
-**nwm** (Nano Window Manager) is a minimal, lightweight X11 window manager written in POSIX C99. Under 1000 lines across two files. No config files, no status bar, no runtime dependencies beyond Xlib. Tiling, floating, and monocle layouts. Tag-based workspaces. Compile-time configuration via `nwm.h`. A clean dwm alternative for users who want full control without the patch surface.
+**swm** (Simple Window Manager) is a minimal, lightweight X11 window manager written in POSIX C99. Under 1000 lines across two files. No config files, no status bar, no runtime dependencies beyond Xlib. Tiling, floating, and monocle layouts. Tag-based workspaces. Compile-time configuration via `swm.h`. A clean dwm alternative for users who want full control without the patch surface.
 
 ---
 
 ## Overview
 
-nwm is a POSIX X11 window manager that follows the suckless philosophy: small, auditable, and configured at compile time. The full source fits in `nwm.c` and `nwm.h`. No external build system, no scripting language, no plugin API.
+swm is a POSIX X11 window manager that follows the suckless philosophy: small, auditable, and configured at compile time. The full source fits in `swm.c` and `swm.h`. No external build system, no scripting language, no plugin API.
 
 Key properties:
 
 - Two source files, under 1000 lines of C99
 - Pure Xlib - no xcb, no Cairo, no Pango
-- Configured entirely in `nwm.h` before compilation
+- Configured entirely in `swm.h` before compilation
 - Partial EWMH and full ICCCM compliance
 - OpenBSD `pledge(2)` support; portable to FreeBSD
 
@@ -48,8 +50,8 @@ Key properties:
 
 <!-- Add screenshots or a demo GIF to this section. -->
 <!-- Suggested alt-text for accessibility and SEO: -->
-<!-- ![nwm tiling window manager on Arch Linux with Nord color theme and two terminals tiled in master/stack layout](screenshots/nwm-tiling.png) -->
-<!-- ![nwm monocle layout showing a single maximized window with minimal border](screenshots/nwm-monocle.png) -->
+<!-- ![swm tiling window manager on Arch Linux with Nord color theme and two terminals tiled in master/stack layout](screenshots/swm-tiling.png) -->
+<!-- ![swm monocle layout showing a single maximized window with minimal border](screenshots/swm-monocle.png) -->
 
 *Screenshots not yet added. To contribute one, open a pull request against this file.*
 
@@ -62,7 +64,7 @@ Key properties:
 | Xlib | `libx11` | `libx11-dev` |
 | C compiler | `gcc` or `clang` | `build-essential` |
 
-No other runtime dependencies. `st` and `dmenu` are the default terminal and launcher; replace them in `nwm.h` before compiling.
+No other runtime dependencies. `st` and `dmenu` are the default terminal and launcher; replace them in `swm.h` before compiling.
 
 **Supported platforms:**
 
@@ -77,23 +79,23 @@ No other runtime dependencies. `st` and `dmenu` are the default terminal and lau
 ### From source
 
 ```sh
-git clone https://github.com/tinyopsec/nwm
-cd nwm
+git clone https://github.com/tinyopsec/swm
+cd swm
 make
 sudo make install
 ```
 
-Installs to `/usr/local/bin/nwm`. Edit `PREFIX` in the `Makefile` to change the path.
+Installs to `/usr/local/bin/swm`. Edit `PREFIX` in the `Makefile` to change the path.
 
 ### AUR (Arch Linux)
 
 ```sh
-yay -S nwm
+yay -S swm
 # or
-paru -S nwm
+paru -S swm
 ```
 
-AUR package: [https://aur.archlinux.org/packages/nwm](https://aur.archlinux.org/packages/nwm)
+AUR package: [https://aur.archlinux.org/packages/swm](https://aur.archlinux.org/packages/swm)
 
 ### Uninstall
 
@@ -105,10 +107,10 @@ sudo make uninstall
 
 ## Usage
 
-Add nwm to `~/.xinitrc`:
+Add swm to `~/.xinitrc`:
 
 ```sh
-exec nwm
+exec swm
 ```
 
 Start X:
@@ -120,23 +122,25 @@ startx
 For display managers, create a session entry:
 
 ```ini
-# /usr/share/xsessions/nwm.desktop
+# /usr/share/xsessions/swm.desktop
 [Desktop Entry]
-Name=nwm
+Name=swm
 Comment=Nano Window Manager - minimal tiling X11 WM
-Exec=nwm
+Exec=swm
 Type=Application
 ```
 
 Print version and exit:
 
 ```sh
-nwm -v
+swm -v
 ```
 
 ---
 
 ## Key Bindings
+
+Default modifier is **Super (Win)**. To switch to Alt, change to `Mod1Mask` in `swm.h`.
 
 | Key | Action |
 |---|---|
@@ -157,7 +161,7 @@ nwm -v
 | `Mod + Shift + 1-9` | Move window to tag |
 | `Mod + 0` | View all tags |
 | `Mod + Shift + 0` | Assign window to all tags |
-| `Mod + Shift + e` | Quit nwm |
+| `Mod + Shift + e` | Quit swm |
 
 **Mouse bindings** (modifier key held over a client window):
 
@@ -169,16 +173,16 @@ nwm -v
 
 Dragging or resizing a tiled window past the snap threshold auto-floats it.
 
-All bindings are defined in `keys[]` and `buttons[]` in `nwm.h` and are freely remappable.
+All bindings are defined in `keys[]` and `buttons[]` in `swm.h` and are freely remappable.
 
 ---
 
 ## Configuration
 
-nwm has no runtime configuration files. All settings live in `nwm.h` and take effect after recompilation:
+swm has no runtime configuration files. All settings live in `swm.h` and take effect after recompilation:
 
 ```sh
-$EDITOR nwm.h
+$EDITOR swm.h
 make && sudo make install
 ```
 
@@ -205,7 +209,6 @@ make && sudo make install
 ### Modifier key
 
 ```c
-#define MODKEY Mod1Mask   /* Alt */
 #define MODKEY Mod4Mask   /* Super / Win */
 ```
 
@@ -222,14 +225,14 @@ Replace with any terminal or launcher: `"alacritty"`, `"foot"`, `"rofi"`, etc.
 
 ## Development Philosophy
 
-nwm follows the [suckless philosophy](https://suckless.org/philosophy/):
+swm follows the [suckless philosophy](https://suckless.org/philosophy/):
 
 - **Auditable by design.** Under 1000 lines of C99. No hidden complexity. The entire codebase fits in one reading session.
-- **Compile-time configuration.** No config file parser, no IPC socket, no scripting runtime. Edit `nwm.h`, recompile.
+- **Compile-time configuration.** No config file parser, no IPC socket, no scripting runtime. Edit `swm.h`, recompile.
 - **Zero dependencies.** Pure Xlib. No xcb, no Cairo, no external libraries.
 - **No feature creep.** Features are added by patching the source, not by enabling runtime options.
 
-nwm is inspired by [dwm](https://dwm.suckless.org) but departs from it in several concrete ways:
+swm is inspired by [dwm](https://dwm.suckless.org) but departs from it in several concrete ways:
 
 - Deterministic tiling algorithm with no pixel drift or remainder accumulation
 - Built-in gap support via `gappx` without requiring a patch
@@ -240,7 +243,7 @@ nwm is inspired by [dwm](https://dwm.suckless.org) but departs from it in severa
 
 ## Contributing
 
-Bug reports and patches are welcome via [GitHub issues](https://github.com/tinyopsec/nwm/issues) and pull requests.
+Bug reports and patches are welcome via [GitHub issues](https://github.com/tinyopsec/swm/issues) and pull requests.
 
 Code style requirements:
 
@@ -272,4 +275,5 @@ MIT. See [LICENSE](LICENSE) for details.
 | ICCCM specification | https://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html |
 | Xlib manual | https://www.x.org/releases/current/doc/libX11/libX11/libX11.html |
 | Nord color palette | https://www.nordtheme.com |
-| AUR package | https://aur.archlinux.org/packages/nwm |
+| AUR package |
+
