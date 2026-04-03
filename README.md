@@ -275,5 +275,5 @@ MIT. See [LICENSE](LICENSE) for details.
 | ICCCM specification | https://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html |
 | Xlib manual | https://www.x.org/releases/current/doc/libX11/libX11/libX11.html |
 | Nord color palette | https://www.nordtheme.com |
-| AUR package |
+| AUR package | https://aur.archlinux.org/packages/swm |
 
