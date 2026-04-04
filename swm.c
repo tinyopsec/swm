@@ -143,7 +143,7 @@ static void (*handler[LASTEvent])(XEvent*) = {
 	[UnmapNotify]      = unmapnotify,
 };
 
-#include "nwm.h"
+#include "swm.h"
 
 static void
 die(const char *fmt, ...) {
@@ -268,6 +268,7 @@ void configurerequest(XEvent *e) {
 		if (ev->value_mask & CWBorderWidth) {
 			c->bw = ev->border_width;
 			XSetWindowBorderWidth(d, c->win, c->bw);
+			ar();
 		} else if (c->isfloating || !lt[lt2]->ar) {
 			if (ev->value_mask & CWX)      { c->oldx = c->x; c->x = ev->x; }
 			if (ev->value_mask & CWY)      { c->oldy = c->y; c->y = ev->y; }
@@ -467,10 +468,10 @@ void mg(Window w, XWindowAttributes *wa) {
 	XChangeProperty(d, r, netatom[NetClientList], XA_WINDOW, 32,
 		PropModeAppend, (unsigned char*)&w, 1);
 	setclientstate(c, NormalState);
-	if (focusonopen) { unfocus(s, 0); s = c; }
+	if (focusonopen) unfocus(s, 0);
 	ar();
 	XMapWindow(d, c->win);
-	fc(focusonopen ? s : NULL);
+	fc(focusonopen ? c : NULL);
 }
 
 void mappingnotify(XEvent *e) {
@@ -491,44 +492,6 @@ void monocle(void) {
 		rs(c, wx+g, wy+g, ww - 2*c->bw - 2*g, wh - 2*c->bw - 2*g, 0);
 }
 
-static void
-mouse_op(C *c, int grab_cursor, int needsroot,
-         void (*motion_cb)(C*, XEvent*, int, int, int*)) {
-	XEvent ev;
-	Time last = 0;
-	int ox, oy, needar = 0;
-	if (!c || c->isfullscreen) return;
-	restack();
-	if (XGrabPointer(d, r, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-		None, cursor[grab_cursor], CurrentTime) != GrabSuccess) return;
-	if (!getrootptr(&ox, &oy)) { XUngrabPointer(d, CurrentTime); return; }
-	if (needsroot) {
-		XWarpPointer(d, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
-	}
-	do {
-		XMaskEvent(d, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
-		if (ev.type == ConfigureRequest || ev.type == Expose || ev.type == MapRequest)
-			handler[ev.type](&ev);
-		else if (ev.type == MotionNotify) {
-			if (ev.xmotion.time - last <= 1000/60) continue;
-			last = ev.xmotion.time;
-			motion_cb(c, &ev, ox, oy, &needar);
-		}
-	} while (ev.type != ButtonRelease);
-	if (needsroot)
-		XWarpPointer(d, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
-	XUngrabPointer(d, CurrentTime);
-	if (needar) ar();
-}
-
-static void mv_motion(C *c, XEvent *ev, int ox, int oy, int *needar) {
-	int nx = c->x + (ev->xmotion.x - ox) - (c->x - (c->oldx = c->x)) ;
-	int ny = c->y + (ev->xmotion.y - oy) - (c->y - (c->oldy = c->y));
-	/* recalculate from original position stored before loop */
-	(void)nx; (void)ny;
-}
-
-/* mv and rz keep their own loops for clarity and exact original semantics */
 void mv(const A *arg) {
 	(void)arg;
 	int x, y, ocx, ocy, nx, ny, needar = 0;
@@ -611,7 +574,6 @@ void rz(const A *arg) {
 	ocx = c->x; ocy = c->y;
 	if (XGrabPointer(d, r, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
 		None, cursor[2], CurrentTime) != GrabSuccess) return;
-	{ int tx, ty; if (!getrootptr(&tx, &ty)) { XUngrabPointer(d, CurrentTime); return; } }
 	XWarpPointer(d, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
 	do {
 		XMaskEvent(d, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
@@ -722,7 +684,7 @@ void setfullscreen(C *c, int fs) {
 		XRaiseWindow(d, c->win);
 	} else if (!fs && c->isfullscreen) {
 		XChangeProperty(d, c->win, netatom[NetWMState], XA_ATOM, 32,
-			PropModeReplace, (unsigned char*)0, 0);
+			PropModeReplace, (unsigned char*)"", 0);
 		c->isfullscreen = 0; c->isfloating = c->oldstate; c->bw = c->oldbw;
 		c->x = c->oldx; c->y = c->oldy; c->w = c->oldw; c->h = c->oldh;
 		resizeclient(c, c->x, c->y, c->w, c->h);
@@ -731,8 +693,9 @@ void setfullscreen(C *c, int fs) {
 }
 
 void setlayout(const A *arg) {
-	if (!arg || !arg->v || arg->v == lt[lt2]) lt2 ^= 1;
-	if (arg && arg->v) lt[lt2] = (L*)arg->v;
+	if (!arg || !arg->v)        { lt2 ^= 1; }
+	else if (arg->v != lt[lt2]) { lt[lt2] = (L*)arg->v; }
+	else                        { lt2 ^= 1; lt[lt2] = (L*)arg->v; }
 	if (s) ar();
 }
 
@@ -817,22 +780,23 @@ void seturgent(C *c, int urg) {
 }
 
 void showhide(C *c) {
-	C *i;
-	for (i = c; i; i = i->snext)
-		if (VIS(i)) {
-			XMoveWindow(d, i->win, i->x, i->y);
-			if ((!lt[lt2]->ar || i->isfloating) && !i->isfullscreen)
-				rs(i, i->x, i->y, i->w, i->h, 0);
+	for (; c; c = c->snext) {
+		if (VIS(c)) {
+			XMoveWindow(d, c->win, c->x, c->y);
+			if ((!lt[lt2]->ar || c->isfloating) && !c->isfullscreen)
+				rs(c, c->x, c->y, c->w, c->h, 0);
+		} else {
+			XMoveWindow(d, c->win, W(c) * -2, c->y);
 		}
-	for (i = c; i; i = i->snext)
-		if (!VIS(i))
-			XMoveWindow(d, i->win, W(i) * -2, i->y);
+	}
 }
 
 void spawn(const A *arg) {
 	pid_t pid = fork();
 	if (pid == -1) return;
 	if (pid == 0) {
+		struct sigaction sa = { .sa_handler = SIG_DFL };
+		sigaction(SIGCHLD, &sa, NULL);
 		if (d) close(ConnectionNumber(d));
 		setsid();
 		execvp(((char**)arg->v)[0], (char**)arg->v);

@@ -11,19 +11,19 @@ LDFLAGS  = -L$(X11LIB) -lX11
 
 CC       = cc
 
-all: nwm
+all: swm
 
-nwm: nwm.c nwm.h
-	$(CC) $(CFLAGS) -o $@ nwm.c $(LDFLAGS)
+swm: swm.c swm.h
+	$(CC) $(CFLAGS) -o $@ swm.c $(LDFLAGS)
 
 clean:
-	rm -f nwm
+	rm -f swm
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	install -m 755 nwm $(DESTDIR)$(PREFIX)/bin/nwm
+	install -m 755 swm $(DESTDIR)$(PREFIX)/bin/swm
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/nwm
+	rm -f $(DESTDIR)$(PREFIX)/bin/swm
 
 .PHONY: all clean install uninstall
