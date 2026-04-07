@@ -16,8 +16,8 @@
 #define CLEANMASK(m)  ((m) & ~(numlockmask|LockMask) & \
 	(ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define VIS(c)        ((c)->tags & ts[sg])
-#define W(c)          ((c)->w + 2*(c)->bw)
-#define H(c)          ((c)->h + 2*(c)->bw)
+#define W(c)          ((c)->w + ((c)->bw << 1))
+#define H(c)          ((c)->h + ((c)->bw << 1))
 #define TM            ((1u << LEN(tags)) - 1)
 #define LEN(x)        (sizeof(x)/sizeof(*(x)))
 #define MAX(a,b)      ((a)>(b)?(a):(b))
@@ -158,23 +158,24 @@ die(const char *fmt, ...) {
 
 static int
 applysizehints(C *c, int *x, int *y, int *w, int *h, int interact) {
+	int bw2 = c->bw << 1;
 	*w = MAX(1, *w);
 	*h = MAX(1, *h);
 	if (interact) {
-		if (*x > sw)                  *x = sw - W(c);
-		if (*y > sh)                  *y = sh - H(c);
-		if (*x + *w + 2*c->bw < 0)   *x = 0;
-		if (*y + *h + 2*c->bw < 0)   *y = 0;
+		if (*x > sw)            *x = sw - (*w + bw2);
+		if (*y > sh)            *y = sh - (*h + bw2);
+		if (*x + *w + bw2 < 0) *x = 0;
+		if (*y + *h + bw2 < 0) *y = 0;
 	} else {
-		if (*x >= wx+ww)              *x = wx+ww - W(c);
-		if (*y >= wy+wh)              *y = wy+wh - H(c);
-		if (*x + *w + 2*c->bw <= wx)  *x = wx;
-		if (*y + *h + 2*c->bw <= wy)  *y = wy;
+		if (*x >= wx+ww)             *x = wx+ww - (*w + bw2);
+		if (*y >= wy+wh)             *y = wy+wh - (*h + bw2);
+		if (*x + *w + bw2 <= wx)     *x = wx;
+		if (*y + *h + bw2 <= wy)     *y = wy;
 	}
 	if (c->isfloating || !lt[lt2]->ar) {
 		if (!c->hintsvalid) updatesizehints(c);
 		*w -= c->basew; *h -= c->baseh;
-		if (c->mina > 0 && c->maxa > 0) {
+		if (c->mina > 0 && c->maxa > 0 && *w > 0 && *h > 0) {
 			if      (c->maxa < (float)*w / *h) *w = (int)(*h * c->maxa + 0.5f);
 			else if (c->mina < (float)*h / *w) *h = (int)(*w * c->mina + 0.5f);
 		}
@@ -286,7 +287,6 @@ void configurerequest(XEvent *e) {
 		wc.border_width = ev->border_width; wc.sibling = ev->above; wc.stack_mode = ev->detail;
 		XConfigureWindow(d, ev->window, ev->value_mask, &wc);
 	}
-	XFlush(d);
 }
 
 void destroynotify(XEvent *e) {
@@ -297,13 +297,13 @@ void destroynotify(XEvent *e) {
 void detach(C *c) {
 	C **tc;
 	for (tc = &cs; *tc && *tc != c; tc = &(*tc)->next);
-	*tc = c->next;
+	if (*tc) *tc = c->next;
 }
 
 void detachstack(C *c) {
 	C **tc, *t;
 	for (tc = &st; *tc && *tc != c; tc = &(*tc)->snext);
-	*tc = c->snext;
+	if (*tc) *tc = c->snext;
 	if (c == s) {
 		for (t = st; t && !VIS(t); t = t->snext);
 		s = t;
@@ -321,7 +321,7 @@ void enternotify(XEvent *e) {
 static void focusclient(C *c) {
 	C **tc;
 	for (tc = &st; *tc && *tc != c; tc = &(*tc)->snext);
-	*tc = c->snext;
+	if (*tc) *tc = c->snext;
 	c->snext = st;
 	st = c;
 }
@@ -359,9 +359,12 @@ void focusstack(const A *arg) {
 }
 
 Atom getatom(C *c, Atom prop) {
-	int di; unsigned long dl; unsigned char *p = NULL; Atom da, a = None;
-	if (XGetWindowProperty(d, c->win, prop, 0L, sizeof(a), False, XA_ATOM,
-		&da, &di, &dl, &dl, &p) == Success && p) { a = *(Atom*)p; XFree(p); }
+	int di; unsigned long dl, dl2; unsigned char *p = NULL; Atom da, a = None;
+	if (XGetWindowProperty(d, c->win, prop, 0L, 1L, False, XA_ATOM,
+		&da, &di, &dl, &dl2, &p) == Success && p) {
+		if (da == XA_ATOM) memcpy(&a, p, sizeof(Atom));
+		XFree(p);
+	}
 	return a;
 }
 
@@ -373,15 +376,15 @@ int getrootptr(int *x, int *y) {
 long getstate(Window w) {
 	int fmt; long res = -1; unsigned char *p = NULL; unsigned long n, ex; Atom real;
 	if (XGetWindowProperty(d, w, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
-		&real, &fmt, &n, &ex, &p) == Success && n) res = *(long*)p;
-	if (p) XFree(p);
+		&real, &fmt, &n, &ex, &p) == Success && n && fmt == 32) {
+		memcpy(&res, p, sizeof(long)); XFree(p);
+	}
 	return res;
 }
 
 void grabbuttons(C *c, int focused) {
 	unsigned int mods[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 	unsigned int i, j;
-	updatenumlockmask();
 	XUngrabButton(d, AnyButton, AnyModifier, c->win);
 	if (!focused) {
 		XGrabButton(d, AnyButton, AnyModifier, c->win, False,
@@ -450,11 +453,11 @@ void mg(Window w, XWindowAttributes *wa) {
 	c->tags = ts[sg];
 	if (XGetTransientForHint(d, w, &trans) && (t = wintoclient(trans)))
 		c->tags = t->tags;
+	c->bw = borderpx;
 	if (c->x + W(c) > wx+ww) c->x = wx+ww - W(c);
 	if (c->y + H(c) > wy+wh) c->y = wy+wh - H(c);
 	c->x = MAX(c->x, wx);
 	c->y = MAX(c->y, wy);
-	c->bw = borderpx;
 	wc.border_width = c->bw;
 	XConfigureWindow(d, w, CWBorderWidth, &wc);
 	XSetWindowBorder(d, w, nborder);
@@ -468,7 +471,6 @@ void mg(Window w, XWindowAttributes *wa) {
 	XChangeProperty(d, r, netatom[NetClientList], XA_WINDOW, 32,
 		PropModeAppend, (unsigned char*)&w, 1);
 	setclientstate(c, NormalState);
-	if (focusonopen) unfocus(s, 0);
 	ar();
 	XMapWindow(d, c->win);
 	fc(focusonopen ? c : NULL);
@@ -489,7 +491,7 @@ void monocle(void) {
 	C *c;
 	int g = gappx;
 	for (c = nexttiled(cs); c; c = nexttiled(c->next))
-		rs(c, wx+g, wy+g, ww - 2*c->bw - 2*g, wh - 2*c->bw - 2*g, 0);
+		rs(c, wx+g, wy+g, ww - (c->bw << 1) - 2*g, wh - (c->bw << 1) - 2*g, 0);
 }
 
 void mv(const A *arg) {
@@ -498,6 +500,7 @@ void mv(const A *arg) {
 	XEvent ev;
 	Time last = 0;
 	C *c = s;
+	const L *l = lt[lt2];
 	if (!c || c->isfullscreen) return;
 	restack();
 	ocx = c->x; ocy = c->y;
@@ -513,15 +516,17 @@ void mv(const A *arg) {
 			last = ev.xmotion.time;
 			nx = ocx + ev.xmotion.x - x;
 			ny = ocy + ev.xmotion.y - y;
-			if (abs(wx - nx) < (int)snap)                     nx = wx;
-			else if (abs(wx+ww - nx - W(c)) < (int)snap)     nx = wx+ww - W(c);
-			if (abs(wy - ny) < (int)snap)                     ny = wy;
-			else if (abs(wy+wh - ny - H(c)) < (int)snap)     ny = wy+wh - H(c);
-			if (!c->isfloating && lt[lt2]->ar
+			int right = wx + ww - W(c);
+			int bot   = wy + wh - H(c);
+			if (abs(wx - nx)    < (int)snap) nx = wx;
+			else if (abs(right - nx) < (int)snap) nx = right;
+			if (abs(wy - ny)    < (int)snap) ny = wy;
+			else if (abs(bot - ny)   < (int)snap) ny = bot;
+			if (!c->isfloating && l->ar
 			&& (abs(nx-c->x) > (int)snap || abs(ny-c->y) > (int)snap)) {
 				c->isfloating = 1; needar = 1;
 			}
-			if (!lt[lt2]->ar || c->isfloating)
+			if (!l->ar || c->isfloating)
 				rs(c, nx, ny, c->w, c->h, 1);
 		}
 	} while (ev.type != ButtonRelease);
@@ -560,7 +565,6 @@ void resizeclient(C *c, int x, int y, int w, int h) {
 	wc.border_width = c->bw;
 	XConfigureWindow(d, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
-	XFlush(d);
 }
 
 void rz(const A *arg) {
@@ -569,6 +573,7 @@ void rz(const A *arg) {
 	XEvent ev;
 	Time last = 0;
 	C *c = s;
+	const L *l = lt[lt2];
 	if (!c || c->isfullscreen) return;
 	restack();
 	ocx = c->x; ocy = c->y;
@@ -582,13 +587,13 @@ void rz(const A *arg) {
 		else if (ev.type == MotionNotify) {
 			if (ev.xmotion.time - last <= 1000/60) continue;
 			last = ev.xmotion.time;
-			nw = MAX(ev.xmotion.x - ocx - 2*c->bw + 1, 1);
-			nh = MAX(ev.xmotion.y - ocy - 2*c->bw + 1, 1);
-			if (!c->isfloating && lt[lt2]->ar
+			nw = MAX(ev.xmotion.x - ocx - (c->bw << 1) + 1, 1);
+			nh = MAX(ev.xmotion.y - ocy - (c->bw << 1) + 1, 1);
+			if (!c->isfloating && l->ar
 			&& (abs(nw-c->w) > (int)snap || abs(nh-c->h) > (int)snap)) {
 				c->isfloating = 1; needar = 1;
 			}
-			if (!lt[lt2]->ar || c->isfloating)
+			if (!l->ar || c->isfloating)
 				rs(c, c->x, c->y, nw, nh, 1);
 		}
 	} while (ev.type != ButtonRelease);
@@ -599,10 +604,11 @@ void rz(const A *arg) {
 
 void restack(void) {
 	C *c;
+	const L *l = lt[lt2];
 	XWindowChanges wc;
 	if (!s) return;
-	if (s->isfloating || !lt[lt2]->ar) XRaiseWindow(d, s->win);
-	if (lt[lt2]->ar) {
+	if (s->isfloating || !l->ar) XRaiseWindow(d, s->win);
+	if (l->ar) {
 		wc.stack_mode = Below; wc.sibling = r;
 		for (c = st; c; c = c->snext)
 			if (!c->isfloating && VIS(c)) {
@@ -610,7 +616,6 @@ void restack(void) {
 				wc.sibling = c->win;
 			}
 	}
-	XSync(d, False);
 }
 
 void run(void) {
@@ -686,16 +691,15 @@ void setfullscreen(C *c, int fs) {
 		XChangeProperty(d, c->win, netatom[NetWMState], XA_ATOM, 32,
 			PropModeReplace, (unsigned char*)"", 0);
 		c->isfullscreen = 0; c->isfloating = c->oldstate; c->bw = c->oldbw;
-		c->x = c->oldx; c->y = c->oldy; c->w = c->oldw; c->h = c->oldh;
-		resizeclient(c, c->x, c->y, c->w, c->h);
+		resizeclient(c, c->oldx, c->oldy, c->oldw, c->oldh);
 		ar();
 	}
 }
 
 void setlayout(const A *arg) {
 	if (!arg || !arg->v)        { lt2 ^= 1; }
-	else if (arg->v != lt[lt2]) { lt[lt2] = (L*)arg->v; }
-	else                        { lt2 ^= 1; lt[lt2] = (L*)arg->v; }
+	else if (arg->v != lt[lt2]) { lt[lt2] = (const L*)arg->v; }
+	else                        { lt2 ^= 1; lt[lt2] = (const L*)arg->v; }
 	if (s) ar();
 }
 
@@ -780,10 +784,11 @@ void seturgent(C *c, int urg) {
 }
 
 void showhide(C *c) {
+	const L *l = lt[lt2];
 	for (; c; c = c->snext) {
 		if (VIS(c)) {
 			XMoveWindow(d, c->win, c->x, c->y);
-			if ((!lt[lt2]->ar || c->isfloating) && !c->isfullscreen)
+			if ((!l->ar || c->isfloating) && !c->isfullscreen)
 				rs(c, c->x, c->y, c->w, c->h, 0);
 		} else {
 			XMoveWindow(d, c->win, W(c) * -2, c->y);
@@ -800,7 +805,7 @@ void spawn(const A *arg) {
 		if (d) close(ConnectionNumber(d));
 		setsid();
 		execvp(((char**)arg->v)[0], (char**)arg->v);
-		die("nwm: execvp %s", ((char**)arg->v)[0]);
+		d = NULL; die("nwm: execvp %s", ((char**)arg->v)[0]);
 	}
 }
 
@@ -811,22 +816,21 @@ void tag(const A *arg) {
 void tile(void) {
 	C *c;
 	unsigned int i, n, nmv, ns;
-	int g = gappx, mw;
+	int g = gappx, mw, mch, sch;
 	for (n = 0, c = nexttiled(cs); c; c = nexttiled(c->next), n++);
 	if (!n) return;
 	nmv = (unsigned)nm < n ? (unsigned)nm : n;
 	ns  = n > nmv ? n - nmv : 0;
 	mw  = nmv && ns ? (int)((ww - 3*g) * mf) + 2*g : ww;
+	mch = nmv ? (wh - (int)(nmv + 1) * g) / (int)nmv : 0;
+	sch = ns  ? (wh - (int)(ns  + 1) * g) / (int)ns  : 0;
 	for (i = 0, c = nexttiled(cs); c; c = nexttiled(c->next), i++) {
 		if (i < nmv) {
-			int ch = (wh - (int)(nmv + 1) * g) / (int)nmv;
-			int y0 = wy + g + (int)i * (ch + g);
-			rs(c, wx + g, y0, mw - 2*c->bw - 2*g, ch - 2*c->bw, 0);
-		} else if (ns > 0) {
-			unsigned int si = i - nmv;
-			int ch = (wh - (int)(ns + 1) * g) / (int)ns;
-			int y0 = wy + g + (int)si * (ch + g);
-			rs(c, wx + mw + g, y0, ww - mw - 2*c->bw - 2*g, ch - 2*c->bw, 0);
+			int y0 = wy + g + (int)i * (mch + g);
+			rs(c, wx + g, y0, mw - (c->bw << 1) - 2*g, mch - (c->bw << 1), 0);
+		} else {
+			int y0 = wy + g + (int)(i - nmv) * (sch + g);
+			rs(c, wx + mw + g, y0, ww - mw - (c->bw << 1) - 2*g, sch - (c->bw << 1), 0);
 		}
 	}
 }
@@ -902,14 +906,21 @@ void updateclientlist(void) {
 }
 
 void updatenumlockmask(void) {
-	unsigned int i, j;
+	unsigned int i;
+	int j;
+	KeyCode nlk;
 	XModifierKeymap *mm = XGetModifierMapping(d);
 	if (!mm) return;
 	numlockmask = 0;
-	for (i = 0; i < 8; i++)
-		for (j = 0; j < (unsigned)mm->max_keypermod; j++)
-			if (mm->modifiermap[i*mm->max_keypermod+j] == XKeysymToKeycode(d, XK_Num_Lock))
-				numlockmask = 1 << i;
+	nlk = XKeysymToKeycode(d, XK_Num_Lock);
+	if (nlk)
+		for (i = 0; i < 8; i++)
+			for (j = 0; j < mm->max_keypermod; j++)
+				if (mm->modifiermap[i*mm->max_keypermod+j] == nlk) {
+					numlockmask = 1 << i;
+					goto done;
+				}
+	done:
 	XFreeModifiermap(mm);
 }
 
@@ -924,7 +935,7 @@ void updatesizehints(C *c) {
 	c->maxh  = (sz.flags & PMaxSize)   ? sz.max_height : 0;
 	c->minw  = (sz.flags & PMinSize)   ? sz.min_width  : c->basew;
 	c->minh  = (sz.flags & PMinSize)   ? sz.min_height : c->baseh;
-	if (sz.flags & PAspect) {
+	if ((sz.flags & PAspect) && sz.min_aspect.x && sz.max_aspect.y) {
 		c->mina = (float)sz.min_aspect.y / sz.min_aspect.x;
 		c->maxa = (float)sz.max_aspect.x / sz.max_aspect.y;
 	} else {
