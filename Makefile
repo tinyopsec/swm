@@ -1,34 +1,34 @@
-.POSIX:
+VERSION  = 1.0
 
-NAME     = <NAME>
-SRCS     = <LIST OF .c FILES>
-HDRS     = <LIST OF .h FILES>
-OBJS     = $(SRCS:.c=.o)
+PREFIX  ?= /usr/local
+DESTDIR ?=
 
-PREFIX   ?= /usr/local
-CC       ?= c99
-CFLAGS   ?= -O2 -Wall
-CPPFLAGS ?= 
-LDFLAGS  ?= 
-LDLIBS   ?= <e.g. -lX11>
+CC      ?= cc
+CFLAGS  ?= -std=c99 -pedantic -Wall -Os
+CPPFLAGS = -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE -DVERSION=\"$(VERSION)\"
+LDFLAGS ?=
+LDLIBS  ?= -lX11
 
-all: $(NAME)
+BIN  = swm
+OBJS = swm.o
 
-$(NAME): $(OBJS)
+all: $(BIN)
+
+$(BIN): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
-.c.o:
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
+swm.o: swm.c swm.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c swm.c
 
 clean:
-	rm -f $(NAME) $(OBJS)
+	rm -f $(BIN) $(OBJS)
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f $(NAME) $(DESTDIR)$(PREFIX)/bin/$(NAME)
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/$(NAME)
+	cp $(BIN) $(DESTDIR)$(PREFIX)/bin/$(BIN)
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/$(BIN)
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/$(NAME)
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(BIN)
 
 .PHONY: all clean install uninstall
