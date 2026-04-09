@@ -1,17 +1,18 @@
-# swm - Simple Window Manager
-
-> **Note:** Project was renamed from `nwm` to `swm` (Simple Window Manager) in April 2026.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/tinyopsec/assets/main/swm/swm.png" alt="Monocle logo" width="40%">
-</p>
 <div align="center">
 
+  # swm
+
+**Simple X11 Window Manager - suckless, auditable, fast.**
+
+<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/swm/swm.png" width="720" alt="swm - Simple Window Manager, POSIX, <1000loc">
+
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Issues](https://img.shields.io/github/issues/tinyopsec/swm.svg)](https://github.com/tinyopsec/swm/issues)
-[![Stars](https://img.shields.io/github/stars/tinyopsec/swm.svg)](https://github.com/tinyopsec/swm/stargazers)
 [![C99](https://img.shields.io/badge/C-C99%20%2F%20POSIX-lightgrey.svg)]()
-[![LOC](https://img.shields.io/badge/source-under%201000%20lines-brightgreen.svg)]()
+[![LOC](https://img.shields.io/badge/source-under%20250%20lines-brightgreen.svg)]()
+[![Issues](https://img.shields.io/github/issues/tinyopsec/tmenu.svg)](https://github.com/tinyopsec/swm/issues)
+[![Stars](https://img.shields.io/github/stars/tinyopsec/tmenu.svg)](https://github.com/tinyopsec/swm/stargazers)
+
+</div>
 
 </div>
 
