@@ -127,10 +127,17 @@ sudo make uninstall
 ```
 
 ---
+Текущая `Usage` секция у тебя слишком базовая — она не объясняет реальный workflow (особенно про launcher replacement). Ниже — улучшенный вариант, который закрывает этот пробел и выглядит как нормальная документация уровня suckless-проектов.
+
+Можешь просто заменить свою `## Usage` на это:
+
+---
 
 ## Usage
 
-Add `swm` to `~/.xinitrc`:
+### Starting `swm`
+
+Add `swm` to your `~/.xinitrc`:
 
 ```sh
 exec swm
@@ -153,14 +160,114 @@ Exec=swm
 Type=Application
 ```
 
-Print version and exit:
+---
+
+### Launcher and terminal
+
+By default, `swm` uses:
+
+```c
+static const char *termcmd[]  = { "st", NULL };
+static const char *dmenucmd[] = { "dmenu_run", NULL };
+```
+
+You can replace these at compile time in `swm.h`.
+
+#### Example: use `tmenu_run` instead of `dmenu_run`
+
+```c
+static const char *dmenucmd[] = { "tmenu_run", NULL };
+```
+
+Recompile and reinstall:
 
 ```sh
-swm -v
+make && sudo make install
+```
+
+After this, `Mod + d` will launch `tmenu_run`.
+
+---
+
+### Autostart integration (recommended)
+
+`swm` does not implement a built-in autostart mechanism by design.
+Use one of the following approaches:
+
+#### 1. Via `.xinitrc`
+
+```sh
+# background services
+picom &
+feh --bg-scale ~/wallpaper.png &
+
+# optional: set PATH if using local binaries
+export PATH="$HOME/.local/bin:$PATH"
+
+exec swm
+```
+
+#### 2. Wrapper script
+
+Create a small launcher script:
+
+```sh
+#!/bin/sh
+
+picom &
+feh --bg-scale ~/wallpaper.png &
+
+exec swm
+```
+
+Then in `.xinitrc`:
+
+```sh
+exec ~/bin/start-swm
 ```
 
 ---
 
+### Using custom binaries (e.g. from `~/.local/bin`)
+
+If your launcher (`tmenu_run`, custom `dmenu`, etc.) is installed in a non-standard path:
+
+```sh
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Ensure it is available before `swm` starts, otherwise keybindings will silently fail.
+
+---
+
+### Verify configuration
+
+Check that your commands are available:
+
+```sh
+which tmenu_run
+```
+
+Test manually:
+
+```sh
+tmenu_run
+```
+
+Then use:
+
+```
+Mod + d
+```
+
+---
+
+### Version
+
+```sh
+swm -v
+```
+---
 ## Key Bindings
 
 The default modifier is **Super (Win)**. To switch to Alt, set `Mod1Mask` in `swm.h`.
