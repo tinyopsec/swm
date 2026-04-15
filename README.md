@@ -74,8 +74,15 @@
 
 ## Screenshots
 
-<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/swm/screenshot.png" width="720" alt="swm — tiling layout with master/stack arrangement">
+<img src="https://raw.githubusercontent.com/tinyopsec/distrohop/main/assets/alpine.webp" 
+     width="520" 
+     alt="Alpine Linux screenshot">
 
+<br/>
+
+<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/swm/screenshot.png" 
+     width="520" 
+     alt="swm — tiling layout with master/stack arrangement">
 ---
 
 ## Requirements
