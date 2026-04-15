@@ -442,7 +442,7 @@ void mg(Window w, XWindowAttributes *wa) {
 	C *c, *t = NULL;
 	Window trans = None;
 	XWindowChanges wc;
-	if (!(c = calloc(1, sizeof(C)))) die("nwm: calloc");
+	if (!(c = calloc(1, sizeof(C)))) die("swm: calloc");
 	c->win   = w;
 	c->x     = c->oldx = wa->x;
 	c->y     = c->oldy = wa->y;
@@ -554,7 +554,11 @@ void propertynotify(XEvent *e) {
 void quit(const A *arg) { (void)arg; running = 0; }
 
 void rs(C *c, int x, int y, int w, int h, int interact) {
-	if (applysizehints(c, &x, &y, &w, &h, interact)) resizeclient(c, x, y, w, h);
+	if (interact || c->isfloating || !lt[lt2]->ar) {
+		if (applysizehints(c, &x, &y, &w, &h, interact)) resizeclient(c, x, y, w, h);
+	} else {
+		resizeclient(c, x, y, w, h);
+	}
 }
 
 void resizeclient(C *c, int x, int y, int w, int h) {
@@ -715,7 +719,7 @@ void setmfact(const A *arg) {
 
 void setup(void) {
 	XSetWindowAttributes wa;
-	XColor xc; Colormap cmap; Atom utf8;
+	XColor xc; Colormap cmap;
 
 	struct sigaction sa = { .sa_handler = SIG_IGN, .sa_flags = SA_RESTART };
 	sigaction(SIGCHLD, &sa, NULL);
@@ -726,18 +730,17 @@ void setup(void) {
 	wx = wy = 0; ww = sw; wh = sh;
 
 	cmap = DefaultColormap(d, screen);
-	if (!XAllocNamedColor(d, cmap, col_nborder, &xc, &xc)) die("nwm: cannot allocate color");
+	if (!XAllocNamedColor(d, cmap, col_nborder, &xc, &xc)) die("swm: cannot allocate color");
 	nborder = xc.pixel;
-	if (!XAllocNamedColor(d, cmap, col_sborder, &xc, &xc)) die("nwm: cannot allocate color");
+	if (!XAllocNamedColor(d, cmap, col_sborder, &xc, &xc)) die("swm: cannot allocate color");
 	sborder = xc.pixel;
-	if (!XAllocNamedColor(d, cmap, col_uborder, &xc, &xc)) die("nwm: cannot allocate color");
+	if (!XAllocNamedColor(d, cmap, col_uborder, &xc, &xc)) die("swm: cannot allocate color");
 	uborder = xc.pixel;
 
-	if (!(cursor[0] = XCreateFontCursor(d, 68)))  die("nwm: XCreateFontCursor");
-	if (!(cursor[1] = XCreateFontCursor(d, 52)))  die("nwm: XCreateFontCursor");
-	if (!(cursor[2] = XCreateFontCursor(d, 120))) die("nwm: XCreateFontCursor");
+	if (!(cursor[0] = XCreateFontCursor(d, 68)))  die("swm: XCreateFontCursor");
+	if (!(cursor[1] = XCreateFontCursor(d, 52)))  die("swm: XCreateFontCursor");
+	if (!(cursor[2] = XCreateFontCursor(d, 120))) die("swm: XCreateFontCursor");
 
-	utf8 = XInternAtom(d, "UTF8_STRING", False);
 	wmatom[WMProtocols] = XInternAtom(d, "WM_PROTOCOLS",      False);
 	wmatom[WMDelete]    = XInternAtom(d, "WM_DELETE_WINDOW",   False);
 	wmatom[WMState]     = XInternAtom(d, "WM_STATE",           False);
@@ -755,7 +758,7 @@ void setup(void) {
 		XA_WINDOW, 32, PropModeReplace, (unsigned char*)&wmcheck, 1);
 	XChangeProperty(d, wmcheck,
 		XInternAtom(d, "_NET_WM_NAME", False),
-		utf8, 8, PropModeReplace, (unsigned char*)"nwm", 3);
+		XA_STRING, 8, PropModeReplace, (unsigned char*)"swm", 3);
 	XChangeProperty(d, r,
 		XInternAtom(d, "_NET_SUPPORTING_WM_CHECK", False),
 		XA_WINDOW, 32, PropModeReplace, (unsigned char*)&wmcheck, 1);
@@ -807,7 +810,7 @@ void spawn(const A *arg) {
 		if (d) close(ConnectionNumber(d));
 		setsid();
 		execvp(((char**)arg->v)[0], (char**)arg->v);
-		d = NULL; die("nwm: execvp %s", ((char**)arg->v)[0]);
+		d = NULL; die("swm: execvp %s", ((char**)arg->v)[0]);
 	}
 }
 
@@ -823,7 +826,7 @@ void tile(void) {
 	if (!n) return;
 	nmv = (unsigned)nm < n ? (unsigned)nm : n;
 	ns  = n > nmv ? n - nmv : 0;
-	mw  = nmv && ns ? (int)((ww - 3*g) * mf) + 2*g : ww;
+	mw  = nmv && ns ? (int)((ww - 2*g) * mf) + g : ww;
 	mch = nmv ? (wh - (int)(nmv + 1) * g) / (int)nmv : 0;
 	sch = ns  ? (wh - (int)(ns  + 1) * g) / (int)ns  : 0;
 	for (i = 0, c = nexttiled(cs); c; c = nexttiled(c->next), i++) {
@@ -988,12 +991,12 @@ int xerror(Display *dpy, XErrorEvent *ee) {
 	|| (ee->request_code == 33  && ee->error_code == BadAccess)
 	|| (ee->request_code == 62  && ee->error_code == BadDrawable))
 		return 0;
-	fprintf(stderr, "nwm: error req=%d code=%d\n", ee->request_code, ee->error_code);
+	fprintf(stderr, "swm: error req=%d code=%d\n", ee->request_code, ee->error_code);
 	return xerrorxlib(dpy, ee);
 }
 
 int xerrordummy(Display *dpy, XErrorEvent *e) { (void)dpy; (void)e; return 0; }
-int xerrorstart(Display *dpy, XErrorEvent *e) { (void)dpy; (void)e; die("nwm: another wm is running"); return -1; }
+int xerrorstart(Display *dpy, XErrorEvent *e) { (void)dpy; (void)e; die("swm: another wm is running"); return -1; }
 
 void zoom(const A *arg) {
 	(void)arg;
@@ -1004,9 +1007,9 @@ void zoom(const A *arg) {
 }
 
 int main(int argc, char *argv[]) {
-	if (argc == 2 && !strcmp("-v", argv[1])) die("nwm-1.1");
-	else if (argc != 1) die("usage: nwm [-v]");
-	if (!(d = XOpenDisplay(NULL))) die("nwm: cannot open display");
+	if (argc == 2 && !strcmp("-v", argv[1])) die("swm-1.1");
+	else if (argc != 1) die("usage: swm [-v]");
+	if (!(d = XOpenDisplay(NULL))) die("swm: cannot open display");
 	checkotherwm();
 	setup();
 	scan(); run(); cleanup();

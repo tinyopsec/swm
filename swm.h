@@ -10,7 +10,7 @@ static const unsigned int gappx       = 6;
 static const unsigned int snap        = 16;
 static const int          attachbottom = 0;
 static const int          focusonopen  = 1;
-static const float        mfact        = 0.55;
+static const float        mfact        = 0.5;
 static const int          nmaster      = 1;
 
 static const char col_nborder[] = "#1e1e1e";

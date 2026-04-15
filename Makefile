@@ -1,6 +1,3 @@
-# swm - simple window manager
-# See LICENSE file for copyright and license details.
-
 VERSION = 1.0
 
 PREFIX  = /usr/local
@@ -9,7 +6,7 @@ MANPREFIX = ${PREFIX}/share/man
 INCS = -I/usr/X11R6/include
 LIBS = -L/usr/X11R6/lib -lX11
 
-CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\"
+CPPFLAGS = -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\"
 CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Wno-unused-parameter -Os ${INCS} ${CPPFLAGS}
 LDFLAGS  = ${LIBS}
 
