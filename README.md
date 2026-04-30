@@ -35,11 +35,11 @@ For display managers, place a session file at `/usr/share/xsessions/swm.desktop`
 
 ## How It Works
 
-`swm` manages windows through a flat client list and a parallel focus stack. The tiling algorithm divides the screen into a master area and a stack area, computing tile sizes with integer arithmetic -- no floating-point accumulation, no pixel drift across redraws.
+`swm` manages windows through a flat client list and a parallel focus stack. The tiling algorithm divides the screen into a master area and a stack area, computing tile sizes with integer arithmetic - no floating-point accumulation, no pixel drift across redraws.
 
 Tags are bitmasks. Each client carries a tag bitmask; the active view is a bitmask. A client is visible when the bitwise AND of its tags and the current view is nonzero. This means one window can appear on multiple tags simultaneously.
 
-Layout and tag history both use a two-slot XOR system. `swm` keeps the current and previous values in a two-element array and flips an index bit on each change. `Mod+Tab` flips the index back -- always returning to whatever was active before, whether that was a layout or a tag view.
+Layout and tag history both use a two-slot XOR system. `swm` keeps the current and previous values in a two-element array and flips an index bit on each change. `Mod+Tab` flips the index back - always returning to whatever was active before, whether that was a layout or a tag view.
 
 ---
 
@@ -54,7 +54,7 @@ Layout and tag history both use a two-slot XOR system. `swm` keeps the current a
 | `Mod+Tab` behavior | Inconsistent across patches | Deterministic XOR for both tags and layouts |
 | OpenBSD `pledge(2)` | Not supported | Supported natively |
 
-If you already run a patched dwm, `swm` is roughly what you end up with after applying the gaps and pertag patches -- except the behavior is defined once, not assembled from diffs.
+If you already run a patched dwm, `swm` is roughly what you end up with after applying the gaps and pertag patches - except the behavior is defined once, not assembled from diffs.
 
 ---
 
@@ -117,6 +117,10 @@ yay -S swm
 ```
 
 Package: [aur.archlinux.org/packages/swm](https://aur.archlinux.org/packages/swm)
+
+### FreeBSD / OpenBSD / NetBSD / DragonFly
+
+Install Xlib via the system package manager, then uncomment the appropriate X11 paths at the top of the `Makefile` for your system before building.
 
 ### Uninstall
 
@@ -208,7 +212,7 @@ The default modifier is **Super (Win)**. To use Alt instead, change `#define MOD
 | `Mod + Shift + 0` | Assign focused window to all tags |
 | `Mod + Tab` | Return to previous tag view (XOR two-slot system) |
 
-`Mod+Tab` is not a simple "previous tag" shortcut. It uses the same two-slot XOR mechanism as layout switching -- it always restores the exact tag bitmask that was active before the last view change, including combined multi-tag views.
+`Mod+Tab` is not a simple "previous tag" shortcut. It uses the same two-slot XOR mechanism as layout switching - it always restores the exact tag bitmask that was active before the last view change, including combined multi-tag views.
 
 ### Mouse (modifier held over a window)
 
@@ -226,7 +230,7 @@ All bindings are defined in the `keys[]` and `buttons[]` arrays in `swm.h`.
 
 ## Configuration
 
-`swm` is configured at compile time by editing `swm.h`. There is no config file, no IPC, no reload mechanism -- change a value, run `make && sudo make install`.
+`swm` is configured at compile time by editing `swm.h`. There is no config file, no IPC, no reload mechanism - change a value, run `make && sudo make install`.
 
 | Option | Default | Description |
 |---|---|---|
