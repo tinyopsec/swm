@@ -2,9 +2,9 @@
 
 # swm
 
-**Simple X11 Window Manager – suckless, auditable, fast.**
+**Minimal tiling X11 window manager. ~900 lines. No config files. No runtime dependencies.**
 
-<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/swm/swm.png" width="720" alt="swm - minimal tiling X11 window manager, POSIX C99, under 1000 lines">
+<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/swm/swm.png" width="720" alt="swm tiling X11 window manager">
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat&logo=open-source-initiative&logoColor=white&labelColor=2d2d2d&color=3a7ca5)](LICENSE)
 [![C99](https://img.shields.io/badge/C-C99%20%2F%20POSIX-8b9bb4?style=flat&logo=c&logoColor=white&labelColor=2d2d2d)](https://en.wikipedia.org/wiki/C99)
@@ -15,35 +15,65 @@
 
 ---
 
-`swm` is a minimal X11 window manager written in POSIX C99. The full source fits in two files, under 1000 lines. No config files, no status bar, no runtime dependencies beyond Xlib.
+`swm` is a minimal X11 window manager written in POSIX C99. Two files, under 1000 lines, pure Xlib. Edit `swm.h`, recompile, done.
 
-**Quick start:**
+---
+
+## Quick Start
 
 ```sh
 git clone https://github.com/tinyopsec/swm
 cd swm
 make && sudo make install
+echo "exec swm" >> ~/.xinitrc
+startx
 ```
+
+For display managers, place a session file at `/usr/share/xsessions/swm.desktop` (see [Usage](#usage)).
+
+---
+
+## How It Works
+
+`swm` manages windows through a flat client list and a parallel focus stack. The tiling algorithm divides the screen into a master area and a stack area, computing tile sizes with integer arithmetic -- no floating-point accumulation, no pixel drift across redraws.
+
+Tags are bitmasks. Each client carries a tag bitmask; the active view is a bitmask. A client is visible when the bitwise AND of its tags and the current view is nonzero. This means one window can appear on multiple tags simultaneously.
+
+Layout and tag history both use a two-slot XOR system. `swm` keeps the current and previous values in a two-element array and flips an index bit on each change. `Mod+Tab` flips the index back -- always returning to whatever was active before, whether that was a layout or a tag view.
+
+---
+
+## vs dwm
+
+`swm` takes direct inspiration from dwm but diverges in a few concrete ways:
+
+| Area | dwm | swm |
+|---|---|---|
+| Tiling arithmetic | Can accumulate pixel remainder | Integer division, no drift |
+| Gap support | Requires patching | Built in via `gappx` |
+| `Mod+Tab` behavior | Inconsistent across patches | Deterministic XOR for both tags and layouts |
+| OpenBSD `pledge(2)` | Not supported | Supported natively |
+
+If you already run a patched dwm, `swm` is roughly what you end up with after applying the gaps and pertag patches -- except the behavior is defined once, not assembled from diffs.
 
 ---
 
 ## Features
 
-| Category          | Details                                                                                      |
-|-------------------|----------------------------------------------------------------------------------------------|
-| Layouts           | Tiling (master/stack), floating, monocle                                                     |
-| Workspaces        | 9 tags using bitmasks; windows may carry multiple tags                                       |
-| Mouse support     | Move, resize, toggle floating via modifier + button                                          |
-| Gaps              | Configurable `gappx` on all sides, built in                                                  |
-| Borders           | Inactive, focused, and urgent colors defined at compile time                                 |
-| Tag switching     | `Mod+Tab` toggles between last two tag views via two-slot XOR system                         |
-| Fullscreen        | Toggle via keybind or `_NET_WM_STATE_FULLSCREEN`                                             |
-| Urgent hints      | `XUrgencyHint` and `_NET_ACTIVE_WINDOW` handled                                              |
-| Auto‑float        | `_NET_WM_WINDOW_TYPE_DIALOG` windows float automatically                                     |
-| EWMH support      | `_NET_WM_STATE`, `_NET_ACTIVE_WINDOW`, `_NET_CLIENT_LIST`, `_NET_SUPPORTING_WM_CHECK`        |
-| ICCCM compliance  | `WM_DELETE_WINDOW`, `WM_TAKE_FOCUS`, `WM_NORMAL_HINTS`, `WM_HINTS`                           |
-| OpenBSD pledge    | Supports `pledge(2)`; builds on FreeBSD as well                                              |
-| Compilation       | Clean under `gcc -std=c99 -pedantic -Wall -Wextra`                                           |
+| Category | Details |
+|---|---|
+| Layouts | Tiling (master/stack), floating, monocle |
+| Workspaces | 9 tags via bitmasks; windows may carry multiple tags |
+| Mouse support | Move, resize, toggle floating via modifier + button |
+| Gaps | Configurable `gappx` on all sides |
+| Borders | Inactive, focused, and urgent colors at compile time |
+| Fullscreen | Toggle via keybind or `_NET_WM_STATE_FULLSCREEN` |
+| Urgent hints | `XUrgencyHint` and `_NET_ACTIVE_WINDOW` handled |
+| Auto-float | `_NET_WM_WINDOW_TYPE_DIALOG` windows float automatically |
+| EWMH | `_NET_WM_STATE`, `_NET_ACTIVE_WINDOW`, `_NET_CLIENT_LIST`, `_NET_SUPPORTING_WM_CHECK` |
+| ICCCM | `WM_DELETE_WINDOW`, `WM_TAKE_FOCUS`, `WM_NORMAL_HINTS`, `WM_HINTS` |
+| OpenBSD | `pledge(2)` support; also builds on FreeBSD |
+| Compilation | Clean under `gcc -std=c99 -pedantic -Wall -Wextra` |
 
 ---
 
@@ -51,11 +81,10 @@ make && sudo make install
 
 <img src="https://raw.githubusercontent.com/tinyopsec/distrohop/main/assets/alpine.webp"
      width="49%"
-     alt="Alpine Linux screenshot">
-
+     alt="Alpine Linux with swm">
 <img src="https://raw.githubusercontent.com/tinyopsec/assets/main/swm/screenshot.png"
      width="49%"
-     alt="swm - tiling layout with master/stack arrangement">
+     alt="swm tiling layout master/stack">
 
 ---
 
@@ -63,14 +92,14 @@ make && sudo make install
 
 ### Requirements
 
-| Dependency | Arch Linux         | Debian / Ubuntu   |
-|------------|--------------------|-------------------|
-| Xlib       | `libx11`           | `libx11-dev`      |
-| C compiler | `gcc` or `clang`   | `build-essential` |
+| Dependency | Arch | Debian / Ubuntu | Void | Alpine |
+|---|---|---|---|---|
+| Xlib | `libx11` | `libx11-dev` | `libX11-devel` | `libx11-dev` |
+| C compiler | `gcc` or `clang` | `build-essential` | `gcc` | `build-base` |
 
-No further runtime dependencies. The default terminal is `st` and launcher is `dmenu` – replace them in `swm.h` before compilation if desired.
+No runtime dependencies beyond Xlib. The default terminal is `st` and the default launcher is `dmenu`. Change them in `swm.h` before compiling if needed.
 
-### From source
+### From Source
 
 ```sh
 git clone https://github.com/tinyopsec/swm
@@ -79,17 +108,15 @@ make
 sudo make install   # installs to /usr/local/bin/swm
 ```
 
-Edit `PREFIX` in the `Makefile` to change the installation path.
+Change `PREFIX` in the `Makefile` to install elsewhere.
 
 ### AUR (Arch Linux)
 
 ```sh
 yay -S swm
-# or
-paru -S swm
 ```
 
-AUR package: [aur.archlinux.org/packages/swm](https://aur.archlinux.org/packages/swm)
+Package: [aur.archlinux.org/packages/swm](https://aur.archlinux.org/packages/swm)
 
 ### Uninstall
 
@@ -103,44 +130,7 @@ sudo make uninstall
 
 ### Starting swm
 
-Add `swm` to your `~/.xinitrc`:
-
-```sh
-exec swm
-```
-
-For display managers, create a session entry:
-
-```ini
-# /usr/share/xsessions/swm.desktop
-[Desktop Entry]
-Name=swm
-Comment=Simple Window Manager – minimal tiling X11 WM
-Exec=swm
-Type=Application
-```
-
-### Terminal and launcher
-
-The defaults are defined in `swm.h`:
-
-```c
-static const char *termcmd[]  = { "st", NULL };
-static const char *dmenucmd[] = { "dmenu_run", NULL };
-```
-
-To use `alacritty` and `rofi`, change them to:
-
-```c
-static const char *termcmd[]  = { "alacritty", NULL };
-static const char *dmenucmd[] = { "rofi", "-show", "run", NULL };
-```
-
-Recompile and reinstall.
-
-### Autostart (recommended)
-
-`swm` does not provide an autostart mechanism. Start background services from `.xinitrc` or a wrapper script:
+Add to `~/.xinitrc`:
 
 ```sh
 picom &
@@ -148,110 +138,127 @@ feh --bg-scale ~/wallpaper.png &
 exec swm
 ```
 
----
+`swm` has no built-in autostart. Launch background processes from `.xinitrc` or a wrapper script before the `exec` line.
 
-## Default Key Bindings
+For display managers:
 
-The default modifier is **Super (Win)**. Change `#define MODKEY Mod4Mask` in `swm.h` to use `Mod1Mask` (Alt).
-
-### Window and layout
-
-| Key                     | Action                                      |
-|-------------------------|---------------------------------------------|
-| `Mod + Return`          | Spawn terminal                              |
-| `Mod + d`               | Spawn dmenu                                 |
-| `Mod + j`               | Focus next window in stack                  |
-| `Mod + k`               | Focus previous window in stack              |
-| `Mod + h`               | Shrink master area by 5%                    |
-| `Mod + l`               | Grow master area by 5%                      |
-| `Mod + i`               | Increase master window count                |
-| `Mod + o`               | Decrease master window count                |
-| `Mod + Space`           | Promote focused window to master            |
-| `Mod + Tab`             | Toggle between last two tag views           |
-| `Mod + t`               | Tiling layout                               |
-| `Mod + f`               | Floating layout                             |
-| `Mod + m`               | Monocle layout                              |
-| `Mod + F11`             | Toggle fullscreen                           |
-| `Mod + Shift + Space`   | Toggle floating for focused window          |
-| `Mod + q`               | Kill focused window                         |
-| `Mod + Shift + e`       | Quit swm                                    |
-
-### Tags (workspaces)
-
-| Key                         | Action                                      |
-|-----------------------------|---------------------------------------------|
-| `Mod + 1-9`                 | Switch to tag                               |
-| `Mod + Ctrl + 1-9`          | Toggle tag view (show alongside current)    |
-| `Mod + Shift + 1-9`         | Move focused window to tag                  |
-| `Mod + Ctrl + Shift + 1-9`  | Toggle tag assignment on focused window     |
-| `Mod + 0`                   | View all tags at once                       |
-| `Mod + Shift + 0`           | Assign focused window to all tags           |
-
-### Mouse (modifier key held over a window)
-
-| Button          | Action          |
-|-----------------|-----------------|
-| `Mod + Button1` | Move window     |
-| `Mod + Button2` | Toggle floating |
-| `Mod + Button3` | Resize window   |
-
-Dragging or resizing a tiled window past the snap threshold (`snap` pixels) will float it automatically.
-
-All bindings are defined in the `keys[]` and `buttons[]` arrays inside `swm.h`.
-
----
-
-## Configuration
-
-`swm` is configured entirely at compile time by editing `swm.h`.
-
-| Option          | Default     | Description                                    |
-|-----------------|-------------|------------------------------------------------|
-| `borderpx`      | `0`         | Border width in pixels                         |
-| `gappx`         | `6`         | Gap between windows and screen edges           |
-| `col_nborder`   | `#1e1e1e`   | Inactive border color                          |
-| `col_sborder`   | `#7c9e7e`   | Focused border color                           |
-| `col_uborder`   | `#c47f50`   | Urgent window border color                     |
-| `mfact`         | `0.5`       | Master area ratio (0.05–0.95)                  |
-| `nmaster`       | `1`         | Initial number of master windows               |
-| `snap`          | `16`        | Edge snap distance in pixels                   |
-| `attachbottom`  | `0`         | Attach new windows at bottom of stack          |
-| `focusonopen`   | `1`         | Focus newly opened windows                     |
-
-### Modifier key
-
-```c
-#define MODKEY Mod4Mask   /* Super / Win */
+```ini
+# /usr/share/xsessions/swm.desktop
+[Desktop Entry]
+Name=swm
+Comment=Minimal tiling X11 window manager
+Exec=swm
+Type=Application
 ```
 
-### Terminal and launcher commands
+### Terminal and Launcher
+
+Defaults in `swm.h`:
 
 ```c
 static const char *termcmd[]  = { "st", NULL };
 static const char *dmenucmd[] = { "dmenu_run", NULL };
 ```
 
-After changing `swm.h`, run:
+To use `alacritty` and `rofi`:
 
-```sh
-make && sudo make install
+```c
+static const char *termcmd[]  = { "alacritty", NULL };
+static const char *dmenucmd[] = { "rofi", "-show", "run", NULL };
 ```
+
+Recompile after any change to `swm.h`.
 
 ---
 
-## Development Philosophy
+## Key Bindings
+
+The default modifier is **Super (Win)**. To use Alt instead, change `#define MODKEY Mod4Mask` to `Mod1Mask` in `swm.h`.
+
+### Windows and Layouts
+
+| Key | Action |
+|---|---|
+| `Mod + Return` | Spawn terminal |
+| `Mod + d` | Spawn dmenu |
+| `Mod + j` | Focus next window in stack |
+| `Mod + k` | Focus previous window in stack |
+| `Mod + h` | Shrink master area by 5% |
+| `Mod + l` | Grow master area by 5% |
+| `Mod + i` | Increase master window count |
+| `Mod + o` | Decrease master window count |
+| `Mod + Space` | Promote focused window to master |
+| `Mod + t` | Tiling layout |
+| `Mod + f` | Floating layout |
+| `Mod + m` | Monocle layout |
+| `Mod + F11` | Toggle fullscreen |
+| `Mod + Shift + Space` | Toggle floating for focused window |
+| `Mod + q` | Kill focused window |
+| `Mod + Shift + e` | Quit swm |
+
+### Tags
+
+| Key | Action |
+|---|---|
+| `Mod + 1-9` | Switch to tag |
+| `Mod + Ctrl + 1-9` | Toggle tag view (show alongside current) |
+| `Mod + Shift + 1-9` | Move focused window to tag |
+| `Mod + Ctrl + Shift + 1-9` | Toggle tag assignment on focused window |
+| `Mod + 0` | View all tags |
+| `Mod + Shift + 0` | Assign focused window to all tags |
+| `Mod + Tab` | Return to previous tag view (XOR two-slot system) |
+
+`Mod+Tab` is not a simple "previous tag" shortcut. It uses the same two-slot XOR mechanism as layout switching -- it always restores the exact tag bitmask that was active before the last view change, including combined multi-tag views.
+
+### Mouse (modifier held over a window)
+
+| Button | Action |
+|---|---|
+| `Mod + Button1` | Move window |
+| `Mod + Button2` | Toggle floating |
+| `Mod + Button3` | Resize window |
+
+Dragging or resizing a tiled window beyond `snap` pixels from its position automatically makes it floating. The `snap` threshold is configurable in `swm.h`.
+
+All bindings are defined in the `keys[]` and `buttons[]` arrays in `swm.h`.
+
+---
+
+## Configuration
+
+`swm` is configured at compile time by editing `swm.h`. There is no config file, no IPC, no reload mechanism -- change a value, run `make && sudo make install`.
+
+| Option | Default | Description |
+|---|---|---|
+| `borderpx` | `2` | Border width in pixels |
+| `gappx` | `6` | Gap size between windows and screen edges |
+| `col_nborder` | `#1e1e1e` | Inactive border color |
+| `col_sborder` | `#7c9e7e` | Focused border color |
+| `col_uborder` | `#c47f50` | Urgent window border color |
+| `mfact` | `0.5` | Master area ratio (0.05 to 0.95) |
+| `nmaster` | `1` | Initial number of master windows |
+| `snap` | `16` | Edge snap / float-on-drag threshold in pixels |
+| `attachbottom` | `0` | Attach new windows at bottom of stack instead of top |
+| `focusonopen` | `1` | Focus newly opened windows |
+
+### Modifier Key
+
+```c
+#define MODKEY Mod4Mask   /* Super / Win */
+```
+
+Change to `Mod1Mask` for Alt.
+
+---
+
+## Design
 
 `swm` follows the suckless philosophy:
 
-- **Auditable by design.** Under 1000 lines of C99. The entire codebase can be read and understood in a single sitting.
-- **Compile-time configuration.** No config file parser, no IPC socket, no scripting runtime. Edit `swm.h` and recompile.
-- **Zero external dependencies.** Pure Xlib. No xcb, Cairo, Pango, or extra libraries.
-
-`swm` differs from `dwm` in a few concrete ways:
-
-- Deterministic tiling algorithm with no pixel drift or remainder accumulation
-- Built-in gap support via `gappx` without patching
-- Two-slot XOR system for both layouts and tags – `Mod+Tab` behaves consistently
+- **Auditable.** The entire codebase fits in a single sitting. No hidden layers.
+- **Compile-time configuration.** `swm.h` is the config file. No parser, no socket, no scripting.
+- **No external dependencies.** Pure Xlib. No xcb, Cairo, Pango, or wrapper libraries.
+- **No production comments.** The code is written to be self-explanatory. If a function needs a comment to be understood, it needs to be rewritten.
 
 ---
 
@@ -259,15 +266,15 @@ make && sudo make install
 
 Bug reports and patches are welcome via [GitHub issues](https://github.com/tinyopsec/swm/issues) and pull requests.
 
-Code style requirements:
+Code requirements:
 
 - No comments in production code
 - No external dependencies
-- No over‑abstraction or wrapper layers
+- No over-abstraction or wrapper layers
 - Compiles clean: `gcc -std=c99 -pedantic -Wall -Wextra`
 - Total source stays under 1000 lines
 
-Optional features behind `#ifdef` or compile‑time constants are considered. Core event loop changes are reviewed carefully.
+Optional features behind `#ifdef` or compile-time constants are considered. Core event loop changes are reviewed carefully.
 
 ---
 
@@ -283,18 +290,18 @@ Optional features behind `#ifdef` or compile‑time constants are considered. Co
 
 ---
 
-## Related Links
+## Related
 
-| Resource            | Link                                                                                                        |
-|---------------------|-------------------------------------------------------------------------------------------------------------|
-| dwm (inspiration)   | [dwm.suckless.org](https://dwm.suckless.org)                                                                |
-| suckless.org        | [suckless.org](https://suckless.org)                                                                        |
-| st terminal         | [st.suckless.org](https://st.suckless.org)                                                                  |
-| dmenu               | [tools.suckless.org/dmenu](https://tools.suckless.org/dmenu/)                                               |
-| EWMH specification  | [freedesktop.org](https://specifications.freedesktop.org/wm-spec/latest/)                                   |
-| ICCCM specification | [x.org](https://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html)                               |
-| Xlib manual         | [x.org](https://www.x.org/releases/current/doc/libX11/libX11/libX11.html)                                  |
-| AUR package         | [aur.archlinux.org](https://aur.archlinux.org/packages/swm)                                                 |
+| Resource | Link |
+|---|---|
+| dwm | [dwm.suckless.org](https://dwm.suckless.org) |
+| suckless.org | [suckless.org](https://suckless.org) |
+| st terminal | [st.suckless.org](https://st.suckless.org) |
+| dmenu | [tools.suckless.org/dmenu](https://tools.suckless.org/dmenu/) |
+| EWMH spec | [freedesktop.org](https://specifications.freedesktop.org/wm-spec/latest/) |
+| ICCCM spec | [x.org](https://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html) |
+| Xlib manual | [x.org](https://www.x.org/releases/current/doc/libX11/libX11/libX11.html) |
+| AUR package | [aur.archlinux.org](https://aur.archlinux.org/packages/swm) |
 
 ---
 
