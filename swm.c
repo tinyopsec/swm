@@ -1000,7 +1000,7 @@ static void zoom(const A *arg) {
 }
 
 int main(int argc, char *argv[]) {
-	if (argc == 2 && !strcmp("-v", argv[1])) die("swm-1.1");
+	if (argc == 2 && !strcmp("-v", argv[1])) die("swm-1.0");
 	else if (argc != 1) die("usage: swm [-v]");
 	if (!(d = XOpenDisplay(NULL))) die("swm: cannot open display");
 	chkwm();
