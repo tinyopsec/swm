@@ -9,6 +9,7 @@
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/cursorfont.h>
 
 #define BUTTONMASK    (ButtonPressMask|ButtonReleaseMask)
 #define MOUSEMASK     (BUTTONMASK|PointerMotionMask)
@@ -117,7 +118,7 @@ static Display      *d;
 static Window        r, wmcheck;
 static int           screen, sw, sh, wx, wy, ww, wh;
 static int           running = 1;
-static unsigned int  numlockmask, sg, lt2, ts[2];
+static unsigned int  numlockmask, sg = 0, lt2 = 0, ts[2];
 static float         mf;
 static int           nm;
 static Cursor        cursor[3];
@@ -157,6 +158,7 @@ die(const char *fmt, ...) {
 static int
 aph(C *c, int *x, int *y, int *w, int *h, int i) {
 	int bw2 = c->bw << 1;
+	int noar;
 	*w = MAX(1, *w);
 	*h = MAX(1, *h);
 	if (i) {
@@ -170,7 +172,7 @@ aph(C *c, int *x, int *y, int *w, int *h, int i) {
 		if (*x + *w + bw2 <= wx)     *x = wx;
 		if (*y + *h + bw2 <= wy)     *y = wy;
 	}
-	int noar = c->isfloating || !lt[lt2]->ar;
+	noar = c->isfloating || !lt[lt2]->ar;
 	if (noar) {
 		if (!c->hintsvalid) updsz(c);
 		*w -= c->basew; *h -= c->baseh;
@@ -222,13 +224,10 @@ static void chkwm(void) {
 	XSelectInput(d, DefaultRootWindow(d), SubstructureRedirectMask);
 	XSync(d, False);
 	XSetErrorHandler(xerror);
-	XSync(d, False);
 }
 
 static void cleanup(void) {
-	A a = {.ui = ~0u};
 	unsigned int i;
-	view(&a);
 	while (st) unmanage(st, 0);
 	XUngrabKey(d, AnyKey, AnyModifier, r);
 	for (i = 0; i < 3; i++) XFreeCursor(d, cursor[i]);
@@ -263,7 +262,6 @@ static void configure(C *c) {
 static void cfgreq(XEvent *e) {
 	XConfigureRequestEvent *ev = &e->xconfigurerequest;
 	C *c = wintoclient(ev->window);
-	XWindowChanges wc;
 	if (c) {
 		if (ev->value_mask & CWBorderWidth) {
 			c->bw = ev->border_width;
@@ -282,8 +280,11 @@ static void cfgreq(XEvent *e) {
 			configure(c);
 		}
 	} else {
-		wc.x = ev->x; wc.y = ev->y; wc.width = ev->width; wc.height = ev->height;
-		wc.border_width = ev->border_width; wc.sibling = ev->above; wc.stack_mode = ev->detail;
+		XWindowChanges wc = {
+			.x = ev->x, .y = ev->y, .width = ev->width, .height = ev->height,
+			.border_width = ev->border_width, .sibling = ev->above,
+			.stack_mode = ev->detail,
+		};
 		XConfigureWindow(d, ev->window, ev->value_mask, &wc);
 	}
 }
@@ -404,7 +405,7 @@ static void grabkeys(void) {
 					r, True, GrabModeAsync, GrabModeAsync);
 }
 
-static void incnmaster(const A *arg) { nm = nm + arg->i > 0 ? nm + arg->i : 0; ar(); }
+static void incnmaster(const A *arg) { nm = (nm + arg->i > 0) ? nm + arg->i : 0; ar(); }
 
 static void kp(XEvent *e) {
 	unsigned int i;
@@ -434,8 +435,7 @@ static void killclient(const A *arg) {
 static void mg(Window w, XWindowAttributes *wa) {
 	C *c, *t = NULL;
 	Window trans = None;
-	XWindowChanges wc;
-	if (!(c = malloc(sizeof(C)))) die("swm: malloc");
+	if (!(c = calloc(1, sizeof(C)))) die("swm: calloc");
 	c->win   = w;
 	c->x     = c->oldx = wa->x;
 	c->y     = c->oldy = wa->y;
@@ -452,8 +452,10 @@ static void mg(Window w, XWindowAttributes *wa) {
 	if (c->y + H(c) > wy+wh) c->y = wy+wh - H(c);
 	c->x = MAX(c->x, wx);
 	c->y = MAX(c->y, wy);
-	wc.border_width = c->bw;
-	XConfigureWindow(d, w, CWBorderWidth, &wc);
+	{
+		XWindowChanges wc = { .border_width = c->bw };
+		XConfigureWindow(d, w, CWBorderWidth, &wc);
+	}
 	XSetWindowBorder(d, w, nborder);
 	configure(c);
 	updtype(c);
@@ -491,6 +493,7 @@ static void monocle(void) {
 static void mv(const A *arg) {
 	(void)arg;
 	int x, y, ocx, ocy, nx, ny, needar = 0;
+	int right, bot;
 	XEvent ev;
 	Time last = 0;
 	C *c = s;
@@ -510,8 +513,8 @@ static void mv(const A *arg) {
 			last = ev.xmotion.time;
 			nx = ocx + ev.xmotion.x - x;
 			ny = ocy + ev.xmotion.y - y;
-			int right = wx + ww - W(c);
-			int bot   = wy + wh - H(c);
+			right = wx + ww - W(c);
+			bot   = wy + wh - H(c);
 			if (abs(wx - nx)    < (int)snap) nx = wx;
 			else if (abs(right - nx) < (int)snap) nx = right;
 			if (abs(wy - ny)    < (int)snap) ny = wy;
@@ -555,13 +558,17 @@ static void rs(C *c, int x, int y, int w, int h, int i) {
 }
 
 static void rcl(C *c, int x, int y, int w, int h) {
-	XWindowChanges wc;
-	c->oldx = c->x; c->x = wc.x      = x;
-	c->oldy = c->y; c->y = wc.y      = y;
-	c->oldw = c->w; c->w = wc.width   = w;
-	c->oldh = c->h; c->h = wc.height  = h;
-	wc.border_width = c->bw;
-	XConfigureWindow(d, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
+	c->oldx = c->x; c->x = x;
+	c->oldy = c->y; c->y = y;
+	c->oldw = c->w; c->w = w;
+	c->oldh = c->h; c->h = h;
+	{
+		XWindowChanges wc = {
+			.x = x, .y = y, .width = w, .height = h,
+			.border_width = c->bw,
+		};
+		XConfigureWindow(d, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
+	}
 	configure(c);
 }
 
@@ -603,11 +610,10 @@ static void rz(const A *arg) {
 static void restack(void) {
 	C *c;
 	const L *l = lt[lt2];
-	XWindowChanges wc;
+	XWindowChanges wc = { .stack_mode = Below, .sibling = r };
 	if (!s) return;
 	if (s->isfloating || !l->ar) XRaiseWindow(d, s->win);
 	if (l->ar) {
-		wc.stack_mode = Below; wc.sibling = r;
 		for (c = st; c; c = c->snext)
 			if (!c->isfloating && VIS(c)) {
 				XConfigureWindow(d, c->win, CWSibling|CWStackMode, &wc);
@@ -620,7 +626,8 @@ static void run(void) {
 	XEvent ev;
 	XSync(d, False);
 	while (running && !XNextEvent(d, &ev))
-		if (handler[ev.type]) handler[ev.type](&ev);
+		if (!XFilterEvent(&ev, None) && handler[ev.type])
+			handler[ev.type](&ev);
 }
 
 static void scan(void) {
@@ -695,10 +702,8 @@ static void setfullscreen(C *c, int fs) {
 }
 
 static void setlayout(const A *arg) {
-	if (arg && arg->v) {
-		if (arg->v == lt[lt2]) lt2 ^= 1;
-		lt[lt2] = (const L*)arg->v;
-	} else lt2 ^= 1;
+	if (arg->v == lt[lt2]) lt2 ^= 1;
+	lt[lt2] = (const L*)arg->v;
 	if (s) ar();
 }
 
@@ -730,31 +735,30 @@ static void setup(void) {
 	if (!XAllocNamedColor(d, cmap, col_uborder, &xc, &xc)) die("swm: cannot allocate color");
 	uborder = xc.pixel;
 
-	if (!(cursor[0] = XCreateFontCursor(d, 68)))  die("swm: XCreateFontCursor");
-	if (!(cursor[1] = XCreateFontCursor(d, 52)))  die("swm: XCreateFontCursor");
-	if (!(cursor[2] = XCreateFontCursor(d, 120))) die("swm: XCreateFontCursor");
+	if (!(cursor[0] = XCreateFontCursor(d, XC_left_ptr))) die("swm: XCreateFontCursor");
+	if (!(cursor[1] = XCreateFontCursor(d, XC_fleur)))    die("swm: XCreateFontCursor");
+	if (!(cursor[2] = XCreateFontCursor(d, XC_sizing)))   die("swm: XCreateFontCursor");
 
-	wmatom[WMProtocols] = XInternAtom(d, "WM_PROTOCOLS",      False);
-	wmatom[WMDelete]    = XInternAtom(d, "WM_DELETE_WINDOW",   False);
-	wmatom[WMState]     = XInternAtom(d, "WM_STATE",           False);
-	wmatom[WMTakeFocus] = XInternAtom(d, "WM_TAKE_FOCUS",      False);
-	netatom[NetWMState]            = XInternAtom(d, "_NET_WM_STATE",              False);
-	netatom[NetWMFullscreen]       = XInternAtom(d, "_NET_WM_STATE_FULLSCREEN",   False);
-	netatom[NetActiveWindow]       = XInternAtom(d, "_NET_ACTIVE_WINDOW",         False);
-	netatom[NetWMWindowType]       = XInternAtom(d, "_NET_WM_WINDOW_TYPE",        False);
-	netatom[NetWMWindowTypeDialog] = XInternAtom(d, "_NET_WM_WINDOW_TYPE_DIALOG", False);
-	netatom[NetClientList]         = XInternAtom(d, "_NET_CLIENT_LIST",           False);
-
-	wmcheck = XCreateSimpleWindow(d, r, 0, 0, 1, 1, 0, 0, 0);
-	XChangeProperty(d, wmcheck,
-		XInternAtom(d, "_NET_SUPPORTING_WM_CHECK", False),
-		XA_WINDOW, 32, PropModeReplace, (unsigned char*)&wmcheck, 1);
-	XChangeProperty(d, wmcheck,
-		XInternAtom(d, "_NET_WM_NAME", False),
-		XA_STRING, 8, PropModeReplace, (unsigned char*)"swm", 3);
-	XChangeProperty(d, r,
-		XInternAtom(d, "_NET_SUPPORTING_WM_CHECK", False),
-		XA_WINDOW, 32, PropModeReplace, (unsigned char*)&wmcheck, 1);
+	/* Batch all atom lookups — single round-trip per XInternAtoms(3) */
+	{
+		const char *wmnames[]  = { "WM_PROTOCOLS", "WM_DELETE_WINDOW",
+		                           "WM_STATE", "WM_TAKE_FOCUS" };
+		const char *netnames[] = { "_NET_WM_STATE", "_NET_WM_STATE_FULLSCREEN",
+		                           "_NET_ACTIVE_WINDOW", "_NET_WM_WINDOW_TYPE",
+		                           "_NET_WM_WINDOW_TYPE_DIALOG", "_NET_CLIENT_LIST" };
+		const char *auxnames[] = { "_NET_SUPPORTING_WM_CHECK", "_NET_WM_NAME" };
+		Atom  aux[2];
+		XInternAtoms(d, (char**)wmnames,  WMLast,  False, wmatom);
+		XInternAtoms(d, (char**)netnames, NetLast, False, netatom);
+		XInternAtoms(d, (char**)auxnames, 2,       False, aux);
+		wmcheck = XCreateSimpleWindow(d, r, 0, 0, 1, 1, 0, 0, 0);
+		XChangeProperty(d, wmcheck, aux[0], XA_WINDOW, 32,
+			PropModeReplace, (unsigned char*)&wmcheck, 1);
+		XChangeProperty(d, wmcheck, aux[1], XA_STRING, 8,
+			PropModeReplace, (unsigned char*)"swm", 3);
+		XChangeProperty(d, r, aux[0], XA_WINDOW, 32,
+			PropModeReplace, (unsigned char*)&wmcheck, 1);
+	}
 	XDeleteProperty(d, r, netatom[NetClientList]);
 
 	ts[0] = ts[1] = 1;
@@ -814,7 +818,7 @@ static void tag(const A *arg) {
 static void tile(void) {
 	C *c;
 	unsigned int i, n, nmv, ns;
-	int g = gappx, mw, mch, sch;
+	int g = gappx, mw, mch, sch, y0;
 	for (n = 0, c = nexttiled(cs); c; c = nexttiled(c->next), n++);
 	if (!n) return;
 	nmv = (unsigned)nm < n ? (unsigned)nm : n;
@@ -824,10 +828,10 @@ static void tile(void) {
 	sch = ns  ? (wh - (int)(ns  + 1) * g) / (int)ns  : 0;
 	for (i = 0, c = nexttiled(cs); c; c = nexttiled(c->next), i++) {
 		if (i < nmv) {
-			int y0 = wy + g + (int)i * (mch + g);
+			y0 = wy + g + (int)i * (mch + g);
 			rs(c, wx + g, y0, mw - (c->bw << 1) - 2*g, mch - (c->bw << 1), 0);
 		} else {
-			int y0 = wy + g + (int)(i - nmv) * (sch + g);
+			y0 = wy + g + (int)(i - nmv) * (sch + g);
 			rs(c, wx + mw + g, y0, ww - mw - (c->bw << 1) - 2*g, sch - (c->bw << 1), 0);
 		}
 	}
@@ -868,10 +872,9 @@ static void unfocus(C *c, int sf) {
 }
 
 static void unmanage(C *c, int destroyed) {
-	XWindowChanges wc;
 	detach(c); detachstack(c);
 	if (!destroyed) {
-		wc.border_width = c->oldbw;
+		XWindowChanges wc = { .border_width = c->oldbw };
 		XGrabServer(d);
 		XSetErrorHandler(xe0);
 		XSelectInput(d, c->win, NoEventMask);
@@ -954,9 +957,9 @@ static void updwmh(C *c) {
 	if (c == s && wh->flags & XUrgencyHint) {
 		wh->flags &= ~XUrgencyHint; XSetWMHints(d, c->win, wh);
 	} else {
-		c->isurgent = (wh->flags & XUrgencyHint) ? 1 : 0;
+		c->isurgent = !!(wh->flags & XUrgencyHint);
 	}
-	c->neverfocus = (wh->flags & InputHint) ? !wh->input : 0;
+	c->neverfocus = !!(wh->flags & InputHint) && !wh->input;
 	XFree(wh);
 }
 
@@ -989,7 +992,7 @@ static int xerror(Display *dpy, XErrorEvent *ee) {
 }
 
 static int xe0(Display *dpy, XErrorEvent *e) { (void)dpy; (void)e; return 0; }
-static int xerrorstart(Display *dpy, XErrorEvent *e) { (void)dpy; (void)e; die("swm: another wm is running"); return -1; }
+static int xerrorstart(Display *dpy, XErrorEvent *e) { (void)dpy; (void)e; die("swm: another wm is running"); return 0; }
 
 static void zoom(const A *arg) {
 	(void)arg;
@@ -1000,7 +1003,7 @@ static void zoom(const A *arg) {
 }
 
 int main(int argc, char *argv[]) {
-	if (argc == 2 && !strcmp("-v", argv[1])) die("swm-1.0");
+	if (argc == 2 && !strcmp("-v", argv[1])) die("swm-1.1");
 	else if (argc != 1) die("usage: swm [-v]");
 	if (!(d = XOpenDisplay(NULL))) die("swm: cannot open display");
 	chkwm();
