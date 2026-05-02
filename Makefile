@@ -1,7 +1,7 @@
 # swm - simple window manager
 # See LICENSE file for copyright and license details.
 
-VERSION = 1.1
+VERSION = 1.2
 
 PREFIX  = /usr/local
 BINDIR  = ${PREFIX}/bin
