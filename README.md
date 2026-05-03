@@ -102,7 +102,7 @@ If you already run a patched dwm, `nwm` is roughly what you end up with after ap
 <img src="https://raw.githubusercontent.com/tinyopsec/distrohop/main/assets/alpine.webp"
      width="49%"
      alt="nwm on Alpine Linux: three terminals tiled in master/stack layout">
-<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/screenshot.png"
+<img src="https://raw.githubusercontent.com/tinyopsec/distrohop/main/assets/arch.webp"
      width="49%"
      alt="nwm master/stack with browser in master and two terminals in stack">
 
