@@ -1,4 +1,4 @@
-# swm - simple window manager
+# nwm - Nano window manager
 # See LICENSE file for copyright and license details.
 
 VERSION = 1.2
@@ -35,28 +35,28 @@ LDFLAGS  = ${LIBS}
 
 CC = cc
 
-SRC = swm.c
+SRC = nwm.c
 OBJ = ${SRC:.c=.o}
 
-all: swm
+all: nwm
 
 .c.o:
 	${CC} -c ${CFLAGS} $<
 
-${OBJ}: swm.h
+${OBJ}: nwm.h
 
-swm: ${OBJ}
+nwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
 clean:
-	rm -f swm ${OBJ}
+	rm -f nwm ${OBJ}
 
 install: all
 	mkdir -p ${DESTDIR}${BINDIR}
-	cp -f swm ${DESTDIR}${BINDIR}/swm
-	chmod 755 ${DESTDIR}${BINDIR}/swm
+	cp -f nwm ${DESTDIR}${BINDIR}/nwm
+	chmod 755 ${DESTDIR}${BINDIR}/nwm
 
 uninstall:
-	rm -f ${DESTDIR}${BINDIR}/swm
+	rm -f ${DESTDIR}${BINDIR}/nwm
 
 .PHONY: all clean install uninstall

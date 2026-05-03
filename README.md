@@ -1,22 +1,22 @@
 <div align="center">
 
-# swm
+# nwm
 
 **Minimal tiling X11 window manager. ~1000 lines. No config files. No runtime dependencies.**
 
-<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/swm/swm.png" width="720" alt="swm: tiling layout with master/stack on Alpine Linux">
+<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/nwm.png" width="720" alt="nwm: tiling layout with master/stack on Alpine Linux">
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat&logo=open-source-initiative&logoColor=white&labelColor=2d2d2d&color=3a7ca5)](LICENSE)
 [![C99](https://img.shields.io/badge/C-C99%20%2F%20POSIX-8b9bb4?style=flat&logo=c&logoColor=white&labelColor=2d2d2d)](https://en.wikipedia.org/wiki/C99)
-[![LOC](https://img.shields.io/badge/source-under%201000%20lines-6a9c78?style=flat&logo=codefactor&logoColor=white&labelColor=2d2d2d)](swm.c)
-[![Version](https://img.shields.io/badge/version-1.3-9c7e6a?style=flat&logo=semver&logoColor=white&labelColor=2d2d2d)](https://github.com/tinyopsec/swm/releases)
+[![LOC](https://img.shields.io/badge/source-under%201000%20lines-6a9c78?style=flat&logo=codefactor&logoColor=white&labelColor=2d2d2d)](nwm.c)
+[![Version](https://img.shields.io/badge/version-1.3-9c7e6a?style=flat&logo=semver&logoColor=white&labelColor=2d2d2d)](https://github.com/tinyopsec/nwm/releases)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20OpenBSD%20%7C%20FreeBSD-5a7fa8?style=flat&logo=linux&logoColor=white&labelColor=2d2d2d)](Makefile)
 
 </div>
 
 ---
 
-`swm` is a minimal X11 window manager written in POSIX C99. Two files, under 1000 lines, pure Xlib. Edit `swm.h`, recompile, done.
+`nwm` is a minimal X11 window manager written in POSIX C99. Two files, under 1000 lines, pure Xlib. Edit `nwm.h`, recompile, done.
 
 ---
 
@@ -41,25 +41,25 @@
 ## Quick Start
 
 ```sh
-git clone https://github.com/tinyopsec/swm
-cd swm
+git clone https://github.com/tinyopsec/nwm
+cd nwm
 make && sudo make install
-echo "exec swm" >> ~/.xinitrc
+echo "exec nwm" >> ~/.xinitrc
 startx
 ```
 
 > [!NOTE]
-> The default terminal is `st` and the default launcher is `dmenu_run`. Change them in `swm.h` before compiling if you use something else (see [Configuration](#configuration)).
+> The default terminal is `st` and the default launcher is `dmenu_run`. Change them in `nwm.h` before compiling if you use something else (see [Configuration](#configuration)).
 
-For display managers, place a session file at `/usr/share/xsessions/swm.desktop` (see [Usage](#usage)).
+For display managers, place a session file at `/usr/share/xsessions/nwm.desktop` (see [Usage](#usage)).
 
 ---
 
 ## vs dwm
 
-`swm` takes direct inspiration from dwm but diverges in a few concrete ways:
+`nwm` takes direct inspiration from dwm but diverges in a few concrete ways:
 
-| Area | dwm | swm |
+| Area | dwm | nwm |
 |---|---|---|
 | Lines of code | ~2000 | ~900 - fits in one reading session |
 | RAM at idle | ~2-3 MB | ~1 MB - leaner process image |
@@ -69,12 +69,12 @@ For display managers, place a session file at `/usr/share/xsessions/swm.desktop`
 | OpenBSD `pledge(2)` | Not supported | Supported natively |
 | POSIX compliance | Uses GNU extensions in places | Strict POSIX C99 throughout |
 | Status bar | Built-in bar, requires patching to remove | No bar - use any external panel or none |
-| Config complexity | ~100 lines of config + patch management | Single flat `swm.h`, no patch stack |
+| Config complexity | ~100 lines of config + patch management | Single flat `nwm.h`, no patch stack |
 | Audit surface | Large - bar, fonts, drawing code | Minimal - window management only |
 
-dwm's bar and font rendering alone account for a significant portion of its codebase. `swm` drops all of that. No drawing, no text, no color schemes beyond three border hex values.
+dwm's bar and font rendering alone account for a significant portion of its codebase. `nwm` drops all of that. No drawing, no text, no color schemes beyond three border hex values.
 
-If you already run a patched dwm, `swm` is roughly what you end up with after applying the gaps and pertag patches - except the behavior is defined once, not assembled from diffs.
+If you already run a patched dwm, `nwm` is roughly what you end up with after applying the gaps and pertag patches - except the behavior is defined once, not assembled from diffs.
 
 ---
 
@@ -101,10 +101,10 @@ If you already run a patched dwm, `swm` is roughly what you end up with after ap
 
 <img src="https://raw.githubusercontent.com/tinyopsec/distrohop/main/assets/alpine.webp"
      width="49%"
-     alt="swm on Alpine Linux: three terminals tiled in master/stack layout">
-<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/swm/screenshot.png"
+     alt="nwm on Alpine Linux: three terminals tiled in master/stack layout">
+<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/screenshot.png"
      width="49%"
-     alt="swm master/stack with browser in master and two terminals in stack">
+     alt="nwm master/stack with browser in master and two terminals in stack">
 
 ---
 
@@ -122,10 +122,10 @@ No runtime dependencies beyond Xlib.
 ### From Source
 
 ```sh
-git clone --depth 1 https://github.com/tinyopsec/swm
-cd swm
+git clone --depth 1 https://github.com/tinyopsec/nwm
+cd nwm
 make
-sudo make install   # installs to /usr/local/bin/swm
+sudo make install   # installs to /usr/local/bin/nwm
 ```
 
 Change `PREFIX` in the `Makefile` to install elsewhere.
@@ -133,10 +133,10 @@ Change `PREFIX` in the `Makefile` to install elsewhere.
 ### AUR (Arch Linux)
 
 ```sh
-yay -S swm
+yay -S nwm
 ```
 
-Package: [aur.archlinux.org/packages/swm](https://aur.archlinux.org/packages/swm)
+Package: [aur.archlinux.org/packages/nwm](https://aur.archlinux.org/packages/nwm)
 
 <details>
 <summary>FreeBSD / OpenBSD / NetBSD / DragonFly</summary>
@@ -155,7 +155,7 @@ Then build normally:
 make && sudo make install
 ```
 
-`swm` uses `pledge(2)` on OpenBSD automatically - no extra steps needed.
+`nwm` uses `pledge(2)` on OpenBSD automatically - no extra steps needed.
 
 </details>
 
@@ -169,32 +169,32 @@ sudo make uninstall
 
 ## Usage
 
-### Starting swm
+### Starting nwm
 
 Add to `~/.xinitrc`:
 
 ```sh
 picom &
 feh --bg-scale ~/wallpaper.png &
-exec swm
+exec nwm
 ```
 
-`swm` has no built-in autostart. Launch background processes from `.xinitrc` or a wrapper script before the `exec` line.
+`nwm` has no built-in autostart. Launch background processes from `.xinitrc` or a wrapper script before the `exec` line.
 
 For display managers:
 
 ```ini
-# /usr/share/xsessions/swm.desktop
+# /usr/share/xsessions/nwm.desktop
 [Desktop Entry]
-Name=swm
+Name=nwm
 Comment=Minimal tiling X11 window manager
-Exec=swm
+Exec=nwm
 Type=Application
 ```
 
 ### Terminal and Launcher
 
-Defaults in `swm.h`:
+Defaults in `nwm.h`:
 
 ```c
 static const char *termcmd[]  = { "st", NULL };
@@ -209,13 +209,13 @@ static const char *dmenucmd[] = { "rofi", "-show", "run", NULL };
 ```
 
 > [!IMPORTANT]
-> Recompile after any change to `swm.h`: `make && sudo make install`
+> Recompile after any change to `nwm.h`: `make && sudo make install`
 
 ---
 
 ## Key Bindings
 
-The default modifier is **Super (Win)**. To use Alt instead, change `#define MODKEY Mod4Mask` to `Mod1Mask` in `swm.h`.
+The default modifier is **Super (Win)**. To use Alt instead, change `#define MODKEY Mod4Mask` to `Mod1Mask` in `nwm.h`.
 
 ### Windows and Layouts
 
@@ -236,7 +236,7 @@ The default modifier is **Super (Win)**. To use Alt instead, change `#define MOD
 | `Mod + F11` | Toggle fullscreen |
 | `Mod + Shift + Space` | Toggle floating for focused window |
 | `Mod + q` | Kill focused window |
-| `Mod + Shift + e` | Quit swm |
+| `Mod + Shift + e` | Quit nwm |
 
 ### Tags
 
@@ -261,18 +261,18 @@ The default modifier is **Super (Win)**. To use Alt instead, change `#define MOD
 | `Mod + Button2` | Toggle floating |
 | `Mod + Button3` | Resize window |
 
-Dragging or resizing a tiled window beyond `snap` pixels from its position automatically makes it floating. The `snap` threshold is configurable in `swm.h`.
+Dragging or resizing a tiled window beyond `snap` pixels from its position automatically makes it floating. The `snap` threshold is configurable in `nwm.h`.
 
-All bindings are defined in the `keys[]` and `buttons[]` arrays in `swm.h`.
+All bindings are defined in the `keys[]` and `buttons[]` arrays in `nwm.h`.
 
 ---
 
 ## Configuration
 
-`swm` is configured at compile time by editing `swm.h`. There is no config file, no IPC, no reload mechanism.
+`nwm` is configured at compile time by editing `nwm.h`. There is no config file, no IPC, no reload mechanism.
 
 > [!IMPORTANT]
-> After every change to `swm.h`, run `make && sudo make install` and restart swm.
+> After every change to `nwm.h`, run `make && sudo make install` and restart nwm.
 
 | Option | Default | Description |
 |---|---|---|
@@ -306,17 +306,17 @@ static const char col_uborder[] = "#c47f50";  /* urgent   */
 
 ## How It Works
 
-`swm` manages windows through a flat client list and a parallel focus stack. The tiling algorithm divides the screen into a master area and a stack area, computing tile sizes with integer arithmetic - no floating-point accumulation, no pixel drift across redraws.
+`nwm` manages windows through a flat client list and a parallel focus stack. The tiling algorithm divides the screen into a master area and a stack area, computing tile sizes with integer arithmetic - no floating-point accumulation, no pixel drift across redraws.
 
 Tags are bitmasks. Each client carries a tag bitmask; the active view is a bitmask. A client is visible when the bitwise AND of its tags and the current view is nonzero. This means one window can appear on multiple tags simultaneously.
 
-Layout and tag history both use a two-slot XOR system. `swm` keeps the current and previous values in a two-element array and flips an index bit on each change. `Mod+Tab` flips the index back - always returning to whatever was active before, whether that was a layout or a tag view.
+Layout and tag history both use a two-slot XOR system. `nwm` keeps the current and previous values in a two-element array and flips an index bit on each change. `Mod+Tab` flips the index back - always returning to whatever was active before, whether that was a layout or a tag view.
 
 ---
 
 ## Contributing
 
-Bug reports and patches are welcome via [GitHub Issues](https://github.com/tinyopsec/swm/issues) and pull requests.
+Bug reports and patches are welcome via [GitHub Issues](https://github.com/tinyopsec/nwm/issues) and pull requests.
 
 <details>
 <summary>Code requirements</summary>
@@ -335,11 +335,11 @@ Optional features behind `#ifdef` or compile-time constants are considered. Core
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=tinyopsec%2Fswm&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=tinyopsec%2Fnwm&type=date&legend=top-left">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tinyopsec/swm&type=date&theme=dark&legend=top-left" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tinyopsec/swm&type=date&legend=top-left" />
-    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tinyopsec/swm&type=date&legend=top-left" width="720" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tinyopsec/nwm&type=date&theme=dark&legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tinyopsec/nwm&type=date&legend=top-left" />
+    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tinyopsec/nwm&type=date&legend=top-left" width="720" />
   </picture>
 </a>
 
@@ -368,7 +368,7 @@ Optional features behind `#ifdef` or compile-time constants are considered. Core
 
 | Distro | Link |
 |---|---|
-| AUR (Arch) | [aur.archlinux.org/packages/swm](https://aur.archlinux.org/packages/swm) |
+| AUR (Arch) | [aur.archlinux.org/packages/nwm](https://aur.archlinux.org/packages/nwm) |
 
 ---
 
