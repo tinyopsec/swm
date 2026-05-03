@@ -122,7 +122,7 @@ No runtime dependencies beyond Xlib.
 ### From Source
 
 ```sh
-git clone https://github.com/tinyopsec/swm
+git clone --depth 1 https://github.com/tinyopsec/swm
 cd swm
 make
 sudo make install   # installs to /usr/local/bin/swm
