@@ -2,14 +2,14 @@
 
 # swm
 
-**Minimal tiling X11 window manager. ~900 lines. No config files. No runtime dependencies.**
+**Minimal tiling X11 window manager. ~1000 lines. No config files. No runtime dependencies.**
 
 <img src="https://raw.githubusercontent.com/tinyopsec/assets/main/swm/swm.png" width="720" alt="swm: tiling layout with master/stack on Alpine Linux">
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat&logo=open-source-initiative&logoColor=white&labelColor=2d2d2d&color=3a7ca5)](LICENSE)
 [![C99](https://img.shields.io/badge/C-C99%20%2F%20POSIX-8b9bb4?style=flat&logo=c&logoColor=white&labelColor=2d2d2d)](https://en.wikipedia.org/wiki/C99)
 [![LOC](https://img.shields.io/badge/source-under%201000%20lines-6a9c78?style=flat&logo=codefactor&logoColor=white&labelColor=2d2d2d)](swm.c)
-[![Version](https://img.shields.io/badge/version-1.2-9c7e6a?style=flat&logo=semver&logoColor=white&labelColor=2d2d2d)](https://github.com/tinyopsec/swm/releases)
+[![Version](https://img.shields.io/badge/version-1.3-9c7e6a?style=flat&logo=semver&logoColor=white&labelColor=2d2d2d)](https://github.com/tinyopsec/swm/releases)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20OpenBSD%20%7C%20FreeBSD-5a7fa8?style=flat&logo=linux&logoColor=white&labelColor=2d2d2d)](Makefile)
 
 </div>
