@@ -13,9 +13,11 @@
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20OpenBSD%20%7C%20FreeBSD-5a7fa8?style=flat&logo=linux&logoColor=white&labelColor=2d2d2d)](Makefile)
 
 </div>
+<div align="center">
+  <img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/swm-loc.webp" width="50%" alt="LOC breakdown">
+</div>
 
 ---
-
 `nwm` is a minimal X11 window manager written in POSIX C99. Two files, under 1000 lines, pure Xlib. Edit `nwm.h`, recompile, done.
 
 ---
