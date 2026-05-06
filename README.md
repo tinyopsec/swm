@@ -5,19 +5,22 @@
 **Minimal tiling X11 window manager. ~1000 lines. No config files. No runtime dependencies.**
 
 <img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/nwm.webp" style="width: 50%; height: auto;" alt="nwm: tiling layout with master/stack on Alpine Linux">
+<br>
+<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/swm-loc.webp" width="50%" alt="LOC breakdown">
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat&logo=open-source-initiative&logoColor=white&labelColor=2d2d2d&color=3a7ca5)](LICENSE)
-[![C99](https://img.shields.io/badge/C-C99%20%2F%20POSIX-8b9bb4?style=flat&logo=c&logoColor=white&labelColor=2d2d2d)](https://en.wikipedia.org/wiki/C99)
-[![LOC](https://img.shields.io/badge/source-under%201000%20lines-6a9c78?style=flat&logo=codefactor&logoColor=white&labelColor=2d2d2d)](nwm.c)
-[![Version](https://img.shields.io/badge/version-1.3-9c7e6a?style=flat&logo=semver&logoColor=white&labelColor=2d2d2d)](https://github.com/tinyopsec/nwm/releases)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20OpenBSD%20%7C%20FreeBSD-5a7fa8?style=flat&logo=linux&logoColor=white&labelColor=2d2d2d)](Makefile)
+---
 
-</div>
-<div align="center">
-  <img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/swm-loc.webp" width="50%" alt="LOC breakdown">
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat&logo=open-source-initiative&logoColor=white&labelColor=2d2d2d&color=3a7ca5" alt="License: MIT"></a>
+  <a href="https://en.wikipedia.org/wiki/C99"><img src="https://img.shields.io/badge/C-C99%20%2F%20POSIX-8b9bb4?style=flat&logo=c&logoColor=white&labelColor=2d2d2d" alt="C99"></a>
+  <a href="nwm.c"><img src="https://img.shields.io/badge/source-under%201000%20lines-6a9c78?style=flat&logo=codefactor&logoColor=white&labelColor=2d2d2d" alt="LOC"></a>
+  <a href="https://github.com/tinyopsec/nwm/releases"><img src="https://img.shields.io/badge/version-1.3-9c7e6a?style=flat&logo=semver&logoColor=white&labelColor=2d2d2d" alt="Version"></a>
+  <a href="Makefile"><img src="https://img.shields.io/badge/platform-Linux%20%7C%20OpenBSD%20%7C%20FreeBSD-5a7fa8?style=flat&logo=linux&logoColor=white&labelColor=2d2d2d" alt="Platform"></a>
+</p>
 </div>
 
 ---
+
 `nwm` is a minimal X11 window manager written in POSIX C99. Two files, under 1000 lines, pure Xlib. Edit `nwm.h`, recompile, done.
 
 ---
