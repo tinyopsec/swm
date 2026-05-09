@@ -5,8 +5,6 @@
 **Minimal tiling X11 window manager. ~1000 lines. No config files. No runtime dependencies.**
 
 <img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/nwm.webp" style="width: 50%; height: auto;" alt="nwm: tiling layout with master/stack on Alpine Linux">
-<br>
-<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/nwm-loc.webp" width="50%" alt="LOC breakdown">
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat&logo=open-source-initiative&logoColor=white&labelColor=2d2d2d&color=3a7ca5" alt="License: MIT"></a>
