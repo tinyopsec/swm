@@ -524,8 +524,15 @@ mapnot(XEvent *e) {
 static void
 mapreq(XEvent *e) {
 	static XWindowAttributes wa;
+	C *c;
 	if (!XGetWindowAttributes(d, e->xmaprequest.window, &wa) || wa.override_redirect) return;
-	if (!wintoc(e->xmaprequest.window)) mg(e->xmaprequest.window, &wa);
+	if ((c = wintoc(e->xmaprequest.window))) {
+		XMapWindow(d, c->win);
+		setcs(c, NormalState);
+		ar();
+		return;
+	}
+	mg(e->xmaprequest.window, &wa);
 }
 
 static void
@@ -732,6 +739,10 @@ setfocus(C *c) {
 
 static void
 setfs(C *c, int fs) {
+	int fmt, i, j;
+	unsigned long n, rem;
+	unsigned char *p = NULL;
+	Atom type, *atoms, *na;
 	if (fs && !c->isfullscreen) {
 		XChangeProperty(d, c->win, netatom[NetWMState], XA_ATOM, 32,
 			PropModeReplace, (unsigned char*)&netatom[NetWMFullscreen], 1);
@@ -741,8 +752,22 @@ setfs(C *c, int fs) {
 		rcl(c, 0, 0, sw, sh);
 		XRaiseWindow(d, c->win);
 	} else if (!fs && c->isfullscreen) {
-		XChangeProperty(d, c->win, netatom[NetWMState], XA_ATOM, 32,
-			PropModeReplace, (unsigned char*)"", 0);
+		if (XGetWindowProperty(d, c->win, netatom[NetWMState], 0L,
+			1024L, False, XA_ATOM, &type, &fmt, &n, &rem, &p) == Success && p) {
+			atoms = (Atom *)p;
+			na = (Atom *)malloc(n * sizeof(Atom));
+			if (na) {
+				for (i = 0, j = 0; i < (int)n; i++)
+					if (atoms[i] != netatom[NetWMFullscreen])
+						na[j++] = atoms[i];
+				XChangeProperty(d, c->win, netatom[NetWMState], XA_ATOM, 32,
+					PropModeReplace, (unsigned char*)na, j);
+				free(na);
+			}
+			XFree(p);
+		} else {
+			XDeleteProperty(d, c->win, netatom[NetWMState]);
+		}
 		c->isfullscreen = 0; c->isfloating = c->oldstate; c->bw = c->oldbw;
 		rcl(c, c->oldx, c->oldy, c->oldw, c->oldh);
 		ar();
@@ -848,7 +873,7 @@ shide(C *c) {
 			if ((!lt[li]->ar || c->isfloating) && !c->isfullscreen)
 				rs(c, c->x, c->y, c->w, c->h, 0);
 		} else {
-			XMoveWindow(d, c->win, W(c) * -2, c->y);
+			XMoveWindow(d, c->win, -(W(c) + sw), c->y);
 		}
 	}
 }
@@ -1012,11 +1037,19 @@ updsz(C *c) {
 
 static void
 updtype(C *c) {
-	Atom a = getatom(c, netatom[NetWMState]);
-	if (a == netatom[NetWMFullscreen])
-		setfs(c, 1);
-	else if (c->isfullscreen)
-		setfs(c, 0);
+	int fmt, i, fs = 0;
+	unsigned long n, rem;
+	unsigned char *p = NULL;
+	Atom type, *atoms;
+	if (XGetWindowProperty(d, c->win, netatom[NetWMState], 0L,
+		1024L, False, XA_ATOM, &type, &fmt, &n, &rem, &p) == Success && p) {
+		atoms = (Atom *)p;
+		for (i = 0; i < (int)n; i++)
+			if (atoms[i] == netatom[NetWMFullscreen]) { fs = 1; break; }
+		XFree(p);
+	}
+	if (fs && !c->isfullscreen) setfs(c, 1);
+	else if (!fs && c->isfullscreen) setfs(c, 0);
 	if (getatom(c, netatom[NetWMWindowType]) == netatom[NetWMWindowTypeDialog])
 		c->isfloating = 1;
 }
