@@ -275,8 +275,8 @@ All bindings are defined in the `keys[]` and `buttons[]` arrays in `nwm.h`.
 |---|---|---|
 | `borderpx` | `2` | Border width in pixels |
 | `gappx` | `6` | Gap size between windows and screen edges |
-| `col_nborder` | `#1e1e1e` | Inactive border color |
-| `col_sborder` | `#7c9e7e` | Focused border color |
+| `col_nborder` | `#0E2426` | Inactive border color |
+| `col_sborder` | `#59C6B5` | Focused border color |
 | `col_uborder` | `#c47f50` | Urgent window border color |
 | `mfact` | `0.5` | Master area ratio (0.05-0.95) |
 | `nmaster` | `1` | Initial number of master windows |
@@ -294,8 +294,8 @@ All bindings are defined in the `keys[]` and `buttons[]` arrays in `nwm.h`.
 ### Border Colors
 
 ```c
-static const char col_nborder[] = "#1e1e1e";  /* inactive */
-static const char col_sborder[] = "#7c9e7e";  /* focused  */
+static const char col_nborder[] = "#0E2426";  /* inactive */
+static const char col_sborder[] = "#59C6B5";  /* focused  */
 static const char col_uborder[] = "#c47f50";  /* urgent   */
 ```
 
