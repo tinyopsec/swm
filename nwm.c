@@ -6,18 +6,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <X11/keysym.h>
+#include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-
-#define XA_ATOM             ((Atom)  4)
-#define XA_STRING           ((Atom) 31)
-#define XA_WINDOW           ((Atom) 33)
-#define XA_WM_HINTS         ((Atom) 35)
-#define XA_WM_NORMAL_HINTS  ((Atom) 40)
-
-#define XC_LEFT_PTR  68
-#define XC_FLEUR     52
-#define XC_SIZING   120
+#include <X11/cursorfont.h>
 
 #define BUTTONMASK   (ButtonPressMask|ButtonReleaseMask)
 #define MOUSEMASK    (BUTTONMASK|PointerMotionMask)
@@ -30,16 +22,12 @@
 #define LEN(x)       (sizeof(x)/sizeof(*(x)))
 #define MAX(a,b)     ((a)>(b)?(a):(b))
 #define MIN(a,b)     ((a)<(b)?(a):(b))
-#define FRAMERATE    (1000/60)
+#define FRAMERATE    16
 
 #define XP_ConfigureWindow  12
 #define XP_GrabButton       28
 #define XP_GrabKey          33
 #define XP_SetInputFocus    42
-#define XP_CopyArea         62
-#define XP_PolySegment      66
-#define XP_PolyFillRect     70
-#define XP_PolyText8        74
 
 typedef union  { int i; unsigned int ui; float f; const void *v; } A;
 typedef struct { unsigned int click, mask, button; void (*fn)(const A*); A arg; } B;
@@ -253,7 +241,7 @@ static void
 cleanup(void) {
 	unsigned int i;
 	C *c;
-	while ((c = cs)) { detach(c); detachstack(c); free(c); }
+	while ((c = cs)) { detach(c); detachstack(c); XMoveWindow(d, c->win, c->x, c->y); setcs(c, WithdrawnState); free(c); }
 	s = st = NULL;
 	XUngrabKey(d, AnyKey, AnyModifier, r);
 	for (i = 0; i < 3; i++) XFreeCursor(d, cursor[i]);
@@ -312,8 +300,6 @@ cfgreq(XEvent *e) {
 		if (ev->value_mask & CWWidth)  { c->oldw = c->w; c->w = ev->width; }
 		if (ev->value_mask & CWHeight) { c->oldh = c->h; c->h = ev->height; }
 		if (VIS(c)) {
-			if ((ev->value_mask & (CWX|CWY)) && !(ev->value_mask & (CWWidth|CWHeight)))
-				cfgnt(c);
 			XMoveResizeWindow(d, c->win, c->x, c->y, c->w, c->h);
 		} else {
 			cfgnt(c);
@@ -350,8 +336,10 @@ entnot(XEvent *e) {
 	if ((ev->mode != NotifyNormal || ev->detail == NotifyInferior) && ev->window != r)
 		return;
 	ltime = ev->time;
-	if ((c = wintoc(ev->window)) && c != s && (!s || !s->isfullscreen) && !c->isfullscreen)
+	if ((c = wintoc(ev->window)) && c != s && (!s || !s->isfullscreen) && !c->isfullscreen) {
 		fc(c);
+		rst();
+	}
 }
 
 static void
@@ -369,7 +357,7 @@ fc(C *c) {
 		XSetWindowBorder(d, c->win, sborder);
 		setfocus(c);
 	} else {
-		XSetInputFocus(d, r, RevertToPointerRoot, CurrentTime);
+		XSetInputFocus(d, r, RevertToPointerRoot, ltime);
 		XDeleteProperty(d, r, netatom[NetActiveWindow]);
 	}
 	s = c;
@@ -397,7 +385,7 @@ getatom(C *c, Atom prop) {
 	int fmt; unsigned long n, rem; unsigned char *p = NULL; Atom type, a = None;
 	if (XGetWindowProperty(d, c->win, prop, 0L, 1L, False, XA_ATOM,
 		&type, &fmt, &n, &rem, &p) == Success && p) {
-		if (type == XA_ATOM) memcpy(&a, p, sizeof(Atom));
+		if (type == XA_ATOM && n > 0) memcpy(&a, p, sizeof(Atom));
 		XFree(p);
 	}
 	return a;
@@ -409,8 +397,9 @@ static long
 getstate(Window w) {
 	int fmt; long res = -1; unsigned char *p = NULL; unsigned long n, ex; Atom real;
 	if (XGetWindowProperty(d, w, wmatom[WMState], 0L, 2L, False, wmatom[WMState],
-		&real, &fmt, &n, &ex, &p) == Success && n && fmt == 32) {
-		memcpy(&res, p, sizeof(long)); XFree(p);
+		&real, &fmt, &n, &ex, &p) == Success) {
+		if (n && fmt == 32 && p) memcpy(&res, p, sizeof(long));
+		if (p) XFree(p);
 	}
 	return res;
 }
@@ -501,17 +490,17 @@ mg(Window w, XWindowAttributes *wa) {
 	XConfigureWindow(d, w, CWBorderWidth, &wc);
 	XSetWindowBorder(d, w, nborder);
 	cfgnt(c);
+	c->isfloating = c->oldstate = trans != None || c->isfixed;
 	updtype(c);
 	XSelectInput(d, w, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
 	grabbuttons(c, 0);
-	c->isfloating = c->oldstate = trans != None || c->isfixed;
 	at(c);
 	XChangeProperty(d, r, netatom[NetClientList], XA_WINDOW, 32,
 		PropModeAppend, (unsigned char*)&w, 1);
-	setcs(c, NormalState);
 	ar();
 	if (c->isfloating) XMapRaised(d, c->win);
 	else               XMapWindow(d, c->win);
+	setcs(c, NormalState);
 	if (focusonopen) fc(c);
 }
 
@@ -539,7 +528,7 @@ static void
 monocle(void) {
 	C *c;
 	for (c = nextt(cs); c; c = nextt(c->next))
-		rs(c, wx, wy, ww - (c->bw << 1), wh - (c->bw << 1), 0);
+		rs(c, wx, wy, MAX(1, ww - (c->bw << 1)), MAX(1, wh - (c->bw << 1)), 0);
 }
 
 static void
@@ -582,7 +571,7 @@ mv(const A *arg) {
 
 static C *nextt(C *c) { for (; c && (c->isfloating || !VIS(c)); c = c->next); return c; }
 
-static void pop(C *c) { detach(c); at(c); fc(c); ar(); }
+static void pop(C *c) { detach(c); c->next = cs; cs = c; fc(c); ar(); }
 
 static void
 propnot(XEvent *e) {
@@ -617,7 +606,6 @@ rcl(C *c, int x, int y, int w, int h) {
 	c->oldh = c->h; c->h = h;
 	wc.x = x; wc.y = y; wc.width = w; wc.height = h; wc.border_width = c->bw;
 	XConfigureWindow(d, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
-	cfgnt(c);
 }
 
 static void
@@ -676,7 +664,7 @@ run(void) {
 	XEvent ev;
 	XSync(d, False);
 	while (running && !XNextEvent(d, &ev))
-		if (!XFilterEvent(&ev, None) && handler[ev.type])
+		if (!XFilterEvent(&ev, None) && ev.type < LASTEvent && handler[ev.type])
 			handler[ev.type](&ev);
 }
 
@@ -754,15 +742,21 @@ setfs(C *c, int fs) {
 	} else if (!fs && c->isfullscreen) {
 		if (XGetWindowProperty(d, c->win, netatom[NetWMState], 0L,
 			1024L, False, XA_ATOM, &type, &fmt, &n, &rem, &p) == Success && p) {
-			atoms = (Atom *)p;
-			na = (Atom *)malloc(n * sizeof(Atom));
-			if (na) {
-				for (i = 0, j = 0; i < (int)n; i++)
-					if (atoms[i] != netatom[NetWMFullscreen])
-						na[j++] = atoms[i];
-				XChangeProperty(d, c->win, netatom[NetWMState], XA_ATOM, 32,
-					PropModeReplace, (unsigned char*)na, j);
-				free(na);
+			if (n == 0) {
+				XDeleteProperty(d, c->win, netatom[NetWMState]);
+			} else {
+				atoms = (Atom *)p;
+				na = (Atom *)malloc(n * sizeof(Atom));
+				if (na) {
+					for (i = 0, j = 0; i < (int)n; i++)
+						if (atoms[i] != netatom[NetWMFullscreen])
+							na[j++] = atoms[i];
+					XChangeProperty(d, c->win, netatom[NetWMState], XA_ATOM, 32,
+						PropModeReplace, (unsigned char*)na, j);
+					free(na);
+				} else {
+					XDeleteProperty(d, c->win, netatom[NetWMState]);
+				}
 			}
 			XFree(p);
 		} else {
@@ -798,11 +792,11 @@ setup(void) {
 	static char *netnames[] = { "_NET_WM_STATE", "_NET_WM_STATE_FULLSCREEN",
 	                            "_NET_ACTIVE_WINDOW", "_NET_WM_WINDOW_TYPE",
 	                            "_NET_WM_WINDOW_TYPE_DIALOG", "_NET_CLIENT_LIST" };
-	static char *auxnames[] = { "_NET_SUPPORTING_WM_CHECK", "_NET_WM_NAME" };
+	static char *auxnames[] = { "_NET_SUPPORTING_WM_CHECK", "_NET_WM_NAME", "UTF8_STRING" };
 	struct sigaction sa = {0};
 	XSetWindowAttributes wa;
-	XColor xc; Colormap cmap;
-	Atom aux[2];
+	XColor xc, exact; Colormap cmap;
+	Atom aux[3];
 
 	sa.sa_handler = SIG_IGN;
 	sa.sa_flags   = SA_RESTART;
@@ -816,25 +810,25 @@ setup(void) {
 	wx = wy = 0; ww = sw; wh = sh;
 
 	cmap = DefaultColormap(d, screen);
-	if (!XAllocNamedColor(d, cmap, colnb, &xc, &xc)) die("nwm: cannot allocate color");
+	if (!XAllocNamedColor(d, cmap, colnb, &xc, &exact)) die("nwm: cannot allocate color");
 	nborder = xc.pixel;
-	if (!XAllocNamedColor(d, cmap, colsb, &xc, &xc)) die("nwm: cannot allocate color");
+	if (!XAllocNamedColor(d, cmap, colsb, &xc, &exact)) die("nwm: cannot allocate color");
 	sborder = xc.pixel;
-	if (!XAllocNamedColor(d, cmap, colub, &xc, &xc)) die("nwm: cannot allocate color");
+	if (!XAllocNamedColor(d, cmap, colub, &xc, &exact)) die("nwm: cannot allocate color");
 	uborder = xc.pixel;
 
-	cursor[0] = XCreateFontCursor(d, XC_LEFT_PTR);
-	cursor[1] = XCreateFontCursor(d, XC_FLEUR);
-	cursor[2] = XCreateFontCursor(d, XC_SIZING);
+	cursor[0] = XCreateFontCursor(d, XC_left_ptr);
+	cursor[1] = XCreateFontCursor(d, XC_fleur);
+	cursor[2] = XCreateFontCursor(d, XC_sizing);
 	if (!cursor[0] || !cursor[1] || !cursor[2]) die("nwm: XCreateFontCursor");
 
 	XInternAtoms(d, wmnames,  WMLast,  False, wmatom);
 	XInternAtoms(d, netnames, NetLast, False, netatom);
-	XInternAtoms(d, auxnames, 2,       False, aux);
+	XInternAtoms(d, auxnames, 3,       False, aux);
 	wmcheck = XCreateSimpleWindow(d, r, 0, 0, 1, 1, 0, 0, 0);
 	XChangeProperty(d, wmcheck, aux[0], XA_WINDOW, 32,
 		PropModeReplace, (unsigned char*)&wmcheck, 1);
-	XChangeProperty(d, wmcheck, aux[1], XA_STRING, 8,
+	XChangeProperty(d, wmcheck, aux[1], aux[2], 8,
 		PropModeReplace, (unsigned char*)"nwm", 3);
 	XChangeProperty(d, r, aux[0], XA_WINDOW, 32,
 		PropModeReplace, (unsigned char*)&wmcheck, 1);
@@ -882,7 +876,7 @@ static void
 spawn(const A *arg) {
 	struct sigaction sa = {0};
 	pid_t pid = fork();
-	if (pid == -1) return;
+	if (pid == -1) { fprintf(stderr, "nwm: fork\n"); return; }
 	if (pid == 0) {
 		sa.sa_handler = SIG_DFL;
 		sigemptyset(&sa.sa_mask);
@@ -912,12 +906,12 @@ tile(void) {
 		int bw2 = c->bw << 1;
 		if (i < nmv) {
 			y0 = wy + g + (int)i * (mch + g);
-			rs(c, wx + g, y0, mw - bw2, mch - bw2, 0);
+			rs(c, wx + g, y0, MAX(1, mw - bw2), MAX(1, mch - bw2), 0);
 		} else {
 			y0 = wy + g + (int)(i - nmv) * (sch + g);
 			rs(c, wx + (nmv ? mw + 2*g : g), y0,
-				(nmv ? ww - mw - 3*g : ww - 2*g) - bw2,
-				sch - bw2, 0);
+				MAX(1, (nmv ? ww - mw - 3*g : ww - 2*g) - bw2),
+				MAX(1, sch - bw2), 0);
 		}
 	}
 }
@@ -1025,7 +1019,8 @@ updsz(C *c) {
 	c->maxh  = (sz.flags & PMaxSize)   ? sz.max_height : 0;
 	c->minw  = (sz.flags & PMinSize)   ? sz.min_width  : c->basew;
 	c->minh  = (sz.flags & PMinSize)   ? sz.min_height : c->baseh;
-	if ((sz.flags & PAspect) && sz.min_aspect.x && sz.max_aspect.y) {
+	if ((sz.flags & PAspect) && sz.min_aspect.x && sz.max_aspect.y
+	    && sz.min_aspect.y && sz.max_aspect.x) {
 		c->mina = (float)sz.min_aspect.y / sz.min_aspect.x;
 		c->maxa = (float)sz.max_aspect.x / sz.max_aspect.y;
 	} else {
@@ -1081,14 +1076,10 @@ static C *wintoc(Window w) { C *c; for (c = cs; c; c = c->next) if (c->win == w)
 static int
 xerror(Display *dpy, XErrorEvent *ee) {
 	if (ee->error_code == BadWindow
-	|| (ee->request_code == XP_SetInputFocus  && ee->error_code == BadMatch)
-	|| (ee->request_code == XP_PolyText8     && ee->error_code == BadDrawable)
-	|| (ee->request_code == XP_PolyFillRect  && ee->error_code == BadDrawable)
-	|| (ee->request_code == XP_PolySegment   && ee->error_code == BadDrawable)
+	|| (ee->request_code == XP_SetInputFocus   && ee->error_code == BadMatch)
 	|| (ee->request_code == XP_ConfigureWindow && ee->error_code == BadMatch)
-	|| (ee->request_code == XP_GrabButton    && ee->error_code == BadAccess)
-	|| (ee->request_code == XP_GrabKey       && ee->error_code == BadAccess)
-	|| (ee->request_code == XP_CopyArea      && ee->error_code == BadDrawable))
+	|| (ee->request_code == XP_GrabButton      && ee->error_code == BadAccess)
+	|| (ee->request_code == XP_GrabKey         && ee->error_code == BadAccess))
 		return 0;
 	fprintf(stderr, "nwm: error req=%d code=%d\n", ee->request_code, ee->error_code);
 	return xerrorxlib(dpy, ee);
@@ -1108,7 +1099,7 @@ zoom(const A *arg) {
 
 int
 main(int argc, char *argv[]) {
-	if (argc == 2 && !strcmp("-v", argv[1])) die("nwm-1.3");
+	if (argc == 2 && !strcmp("-v", argv[1])) die("nwm-1.4");
 	else if (argc != 1) die("usage: nwm [-v]");
 	if (!(d = XOpenDisplay(NULL))) die("nwm: cannot open display");
 	chkwm();

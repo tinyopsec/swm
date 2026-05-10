@@ -5,7 +5,7 @@
 	{ MODKEY|ShiftMask, KEY, tag, {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY, tgltag, {.ui = 1 << TAG} },
 
-static const unsigned int borderpx = 2;
+static const unsigned int borderpx = 0;
 static const unsigned int gappx = 6;
 static const unsigned int snap = 16;
 static const int          attachbottom = 0;
@@ -26,7 +26,7 @@ static const L layouts[] = {
 };
 
 static const char *termcmd[]  = { "st", NULL };
-static const char *dmenucmd[] = { "dmenu_run", NULL };
+static const char *dmenucmd[] = { "tmenu_run", NULL };
 
 static const K keys[] = {
 	{ MODKEY, XK_Return, spawn, {.v = termcmd  } },
