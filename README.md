@@ -8,13 +8,13 @@
 </div>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/license-MIT-0066ff?style=flat-square&labelColor=000000" />
-  <img src="https://img.shields.io/badge/lang-C99%20%2F%20POSIX-00aa44?style=flat-square&labelColor=000000" />
-  <img src="https://img.shields.io/badge/source-%3C%201000%20lines-8833ff?style=flat-square&labelColor=000000" />
-  <img src="https://img.shields.io/badge/version-1.4-ffaa00?style=flat-square&labelColor=000000&color=ffaa00" />
-  <img src="https://img.shields.io/badge/Linux-ffcc00?style=flat-square&logo=linux&logoColor=ffcc00&labelColor=000000" />
-  <img src="https://img.shields.io/badge/OpenBSD-ff4400?style=flat-square&logo=openbsd&logoColor=ff4400&labelColor=000000" />
-  <img src="https://img.shields.io/badge/FreeBSD-0066ff?style=flat-square&logo=freebsd&logoColor=0066ff&labelColor=000000" />
+  <img src="https://img.shields.io/badge/license-MIT-33ACB4?style=flat&labelColor=0E2426" />
+  <img src="https://img.shields.io/badge/lang-C99%20%2F%20POSIX-46B9B4?style=flat&labelColor=0E2426" />
+  <img src="https://img.shields.io/badge/source-%3C%201000%20lines-59C6B5?style=flat&labelColor=0E2426" />
+  <img src="https://img.shields.io/badge/version-1.4-6CD4B5?style=flat&labelColor=0E2426" />
+  <img src="https://img.shields.io/badge/Linux-7EE1B5?style=flat&logo=linux&logoColor=7EE1B5&labelColor=0E2426" />
+  <img src="https://img.shields.io/badge/OpenBSD-91EEB6?style=flat&logo=openbsd&logoColor=91EEB6&labelColor=0E2426" />
+  <img src="https://img.shields.io/badge/FreeBSD-A4FBB6?style=flat&logo=freebsd&logoColor=A4FBB6&labelColor=0E2426" />
 </p>
 
 ## Contents
