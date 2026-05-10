@@ -2,7 +2,7 @@
 
 # nwm
 
-**Minimal tiling X11 window manager. ~1000 lines. No config files. No runtime dependencies.**
+**Minimal tiling X11 window manager. ~1000 lines. No runtime dependencies. Compile-time configuration only**
 
 <img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/nwm.webp" style="width: 65%; height: auto;" alt="nwm: tiling layout with master/stack on Alpine Linux">
 </div>
