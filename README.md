@@ -8,13 +8,20 @@
 </div>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/license-MIT-33ACB4?style=flat&labelColor=0E2426" />
-  <img src="https://img.shields.io/badge/lang-C99%20%2F%20POSIX-46B9B4?style=flat&labelColor=0E2426" />
-  <img src="https://img.shields.io/badge/source-%3C%201000%20lines-59C6B5?style=flat&labelColor=0E2426" />
-  <img src="https://img.shields.io/badge/version-1.4-6CD4B5?style=flat&labelColor=0E2426" />
-  <img src="https://img.shields.io/badge/Linux-7EE1B5?style=flat&logo=linux&logoColor=7EE1B5&labelColor=0E2426" />
-  <img src="https://img.shields.io/badge/OpenBSD-91EEB6?style=flat&logo=openbsd&logoColor=91EEB6&labelColor=0E2426" />
-  <img src="https://img.shields.io/badge/FreeBSD-A4FBB6?style=flat&logo=freebsd&logoColor=A4FBB6&labelColor=0E2426" />
+  <img src="https://img.shields.io/badge/license-MIT-33ACB4?style=flat&labelColor=0E2426&logo=opensourceinitiative&logoColor=33ACB4" />
+  <img src="https://img.shields.io/badge/C99%20%2F%20POSIX-46B9B4?style=flat&label=lang&labelColor=0E2426&logo=c&logoColor=46B9B4" />
+  <img src="https://img.shields.io/badge/%3C%201000%20lines-59C6B5?style=flat&label=source&labelColor=0E2426&logo=files&logoColor=59C6B5" />
+  <img src="https://img.shields.io/badge/1.4-6CD4B5?style=flat&label=version&labelColor=0E2426&logo=tag&logoColor=6CD4B5" />
+  &nbsp;
+  <img src="https://img.shields.io/badge/Linux-7EE1B5?style=flat&labelColor=0E2426&logo=linux&logoColor=7EE1B5" />
+  <img src="https://img.shields.io/badge/OpenBSD-91EEB6?style=flat&labelColor=0E2426&logo=openbsd&logoColor=91EEB6" />
+  <img src="https://img.shields.io/badge/FreeBSD-A4FBB6?style=flat&labelColor=0E2426&logo=freebsd&logoColor=A4FBB6" />
+  &nbsp;
+  <img src="https://img.shields.io/badge/X11%20%2F%20Xlib-33ACB4?style=flat&label=display&labelColor=0E2426&logo=x.org&logoColor=33ACB4" />
+  <img src="https://img.shields.io/badge/make-46B9B4?style=flat&label=build&labelColor=0E2426&logo=gnu&logoColor=46B9B4" />
+  <img src="https://img.shields.io/badge/AUR-59C6B5?style=flat&label=package&labelColor=0E2426&logo=archlinux&logoColor=59C6B5" />
+  <img src="https://img.shields.io/badge/%7E1%20MB%20RAM-6CD4B5?style=flat&label=idle&labelColor=0E2426&logo=speedtest&logoColor=6CD4B5" />
+  <img src="https://img.shields.io/badge/EWMH%20%2F%20ICCCM-7EE1B5?style=flat&label=spec&labelColor=0E2426&logo=xdg&logoColor=7EE1B5" />
 </p>
 
 ## Contents
