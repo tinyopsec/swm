@@ -1,9 +1,10 @@
 <div align="center">
-  
-[![Capsule Render](https://capsule-render.vercel.app/api?type=waving&color=0E2426&height=120&section=header&text=nwm&fontSize=52&fontColor=59C6B5&fontAlignY=65&animation=fadeIn)](https://github.com/tinyopsec/nwm)
+
+[![Capsule Render](https://capsule-render.vercel.app/api?type=waving&color=0E2426&height=80&section=header&text=nwm&fontSize=52&fontColor=59C6B5&fontAlignY=72&animation=fadeIn)](https://github.com/tinyopsec/nwm)
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=JetBrains+Mono&size=14&pause=1200&color=59C6B5&center=true&vCenter=true&width=600&lines=Minimal+tiling+X11+window+manager;%7E1000+lines.+No+runtime+dependencies;Compile-time+configuration+only)](https://git.io/typing-svg)
 <img src="https://raw.githubusercontent.com/tinyopsec/assets/main/nwm/nwm.webp" style="width: 65%; height: auto;" alt="nwm: tiling layout with master/stack on Alpine Linux">
 </div>
+
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-33ACB4?style=flat&labelColor=0E2426&logo=opensourceinitiative&logoColor=33ACB4" />
   <img src="https://img.shields.io/badge/C99%20%2F%20POSIX-46B9B4?style=flat&label=lang&labelColor=0E2426&logo=c&logoColor=46B9B4" />
