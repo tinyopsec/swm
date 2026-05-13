@@ -197,7 +197,12 @@ aph(C *c, int *x, int *y, int *w, int *h, int i) {
 	return *x != c->x || *y != c->y || *w != c->w || *h != c->h;
 }
 
-static void ar(void) { shide(st); if (lt[li]->ar) lt[li]->ar(); rst(); }
+static void
+ar(void) {
+	shide(st);
+	if (lt[li]->ar) lt[li]->ar();
+	rst();
+}
 
 static void
 at(C *c) {
@@ -241,7 +246,12 @@ static void
 cleanup(void) {
 	unsigned int i;
 	C *c;
-	while ((c = cs)) { detach(c); detachstack(c); XMoveWindow(d, c->win, c->x, c->y); setcs(c, WithdrawnState); free(c); }
+	while ((c = cs)) {
+		detach(c); detachstack(c);
+		XMoveWindow(d, c->win, c->x, c->y);
+		setcs(c, WithdrawnState);
+		free(c);
+	}
 	s = st = NULL;
 	XUngrabKey(d, AnyKey, AnyModifier, r);
 	for (i = 0; i < 3; i++) XFreeCursor(d, cursor[i]);
@@ -301,6 +311,7 @@ cfgreq(XEvent *e) {
 		if (ev->value_mask & CWHeight) { c->oldh = c->h; c->h = ev->height; }
 		if (VIS(c)) {
 			XMoveResizeWindow(d, c->win, c->x, c->y, c->w, c->h);
+			if (c->isfloating) XRaiseWindow(d, c->win);
 		} else {
 			cfgnt(c);
 		}
@@ -336,10 +347,13 @@ entnot(XEvent *e) {
 	if ((ev->mode != NotifyNormal || ev->detail == NotifyInferior) && ev->window != r)
 		return;
 	ltime = ev->time;
-	if ((c = wintoc(ev->window)) && c != s && (!s || !s->isfullscreen) && !c->isfullscreen) {
-		fc(c);
-		rst();
-	}
+	c = wintoc(ev->window);
+	if (!c || c == s) return;
+	if (s && s->isfullscreen) return;
+	if (c->isfullscreen) return;
+	if (s && s->isfloating && !c->isfloating && lt[li]->ar) return;
+	fc(c);
+	rst();
 }
 
 static void
@@ -497,11 +511,11 @@ mg(Window w, XWindowAttributes *wa) {
 	at(c);
 	XChangeProperty(d, r, netatom[NetClientList], XA_WINDOW, 32,
 		PropModeAppend, (unsigned char*)&w, 1);
-	ar();
 	if (c->isfloating) XMapRaised(d, c->win);
 	else               XMapWindow(d, c->win);
 	setcs(c, NormalState);
 	if (focusonopen) fc(c);
+	ar();
 }
 
 static void
@@ -512,7 +526,7 @@ mapnot(XEvent *e) {
 
 static void
 mapreq(XEvent *e) {
-	static XWindowAttributes wa;
+	XWindowAttributes wa;
 	C *c;
 	if (!XGetWindowAttributes(d, e->xmaprequest.window, &wa) || wa.override_redirect) return;
 	if ((c = wintoc(e->xmaprequest.window))) {
@@ -648,6 +662,10 @@ rst(void) {
 	C *c;
 	XWindowChanges wc = { .stack_mode = Above };
 	if (!s) return;
+	if (s->isfullscreen) {
+		XRaiseWindow(d, s->win);
+		return;
+	}
 	if (s->isfloating || !lt[li]->ar) XRaiseWindow(d, s->win);
 	if (lt[li]->ar) {
 		for (c = st; c; c = c->snext)
@@ -656,6 +674,10 @@ rst(void) {
 					wc.sibling ? CWSibling|CWStackMode : CWStackMode, &wc);
 				wc.sibling = c->win;
 			}
+		for (c = st; c; c = c->snext)
+			if (c->isfloating && VIS(c))
+				XRaiseWindow(d, c->win);
+		if (s->isfloating) XRaiseWindow(d, s->win);
 	}
 }
 
@@ -822,10 +844,11 @@ setup(void) {
 	cursor[2] = XCreateFontCursor(d, XC_sizing);
 	if (!cursor[0] || !cursor[1] || !cursor[2]) die("nwm: XCreateFontCursor");
 
-	XInternAtoms(d, wmnames,  WMLast,  False, wmatom);
-	XInternAtoms(d, netnames, NetLast, False, netatom);
-	XInternAtoms(d, auxnames, 3,       False, aux);
+	if (!XInternAtoms(d, wmnames,  WMLast,  False, wmatom))  die("nwm: XInternAtoms");
+	if (!XInternAtoms(d, netnames, NetLast, False, netatom)) die("nwm: XInternAtoms");
+	if (!XInternAtoms(d, auxnames, 3,       False, aux))     die("nwm: XInternAtoms");
 	wmcheck = XCreateSimpleWindow(d, r, 0, 0, 1, 1, 0, 0, 0);
+	if (wmcheck == None) die("nwm: XCreateSimpleWindow");
 	XChangeProperty(d, wmcheck, aux[0], XA_WINDOW, 32,
 		PropModeReplace, (unsigned char*)&wmcheck, 1);
 	XChangeProperty(d, wmcheck, aux[1], aux[2], 8,
@@ -884,7 +907,7 @@ spawn(const A *arg) {
 		if (d) close(ConnectionNumber(d));
 		setsid();
 		execvp(((const char**)arg->v)[0], (char*const*)arg->v);
-		d = NULL; die("nwm: execvp %s", ((const char**)arg->v)[0]);
+		die("nwm: execvp %s", ((const char**)arg->v)[0]);
 	}
 }
 
@@ -1099,7 +1122,7 @@ zoom(const A *arg) {
 
 int
 main(int argc, char *argv[]) {
-	if (argc == 2 && !strcmp("-v", argv[1])) die("nwm-1.4");
+	if (argc == 2 && !strcmp("-v", argv[1])) die("nwm-1.5");
 	else if (argc != 1) die("usage: nwm [-v]");
 	if (!(d = XOpenDisplay(NULL))) die("nwm: cannot open display");
 	chkwm();

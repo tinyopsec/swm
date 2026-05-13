@@ -1,7 +1,7 @@
 # nwm - Nano window manager
 # See LICENSE file for copyright and license details.
 
-VERSION = 1.3
+VERSION = 1.5
 
 PREFIX  = /usr/local
 BINDIR  = ${PREFIX}/bin
