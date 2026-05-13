@@ -1,0 +1,66 @@
+* [33m72fdcd1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32m1.4[m[33m)[m Update nwm.h
+* [33m301d5a8[m Update header and footer capsule render sizes
+* [33m88d99bc[m Refactor README.md for improved formatting
+* [33m57f637b[m Update README with new badges and contributors section
+* [33m0abe1c6[m Update badge images in README.md
+* [33m76ae9a7[m Update README.md
+* [33m0c18816[m Update README.md
+* [33m85d57f8[m Update README.md
+* [33mf7ccd68[m Update README.md
+* [33m7cb1b65[m Update README.md
+* [33m6cbde18[m[33m ([m[1;33mtag: [m[1;33mv1.4[m[33m)[m Apply audit fixes: fullscreen state ordering, cleanup hidden windows, remove dead error guards, malloc(0) guard, event bounds check
+* [33m6ee72d8[m Update README.md
+* [33m9595ed2[m Update README.md
+* [33m8078ac3[m bump version to 1.3
+* [33md018532[m fix: window disappearance on workspace switch, fullscreen state, XMoveWindow overflow
+* [33mb21b380[m Update README.md
+* [33m63eef4e[m Update README.md
+* [33mbaa5919[m Update README.md
+* [33m11c1ab8[m Revise README for clarity and formatting improvements
+* [33m0c435ba[m Update README.md
+* [33m4be6f7b[m Update README.md
+* [33m859a2f5[m Update README.md
+* [33m22ee860[m Remove swm.h and swm.c
+* [33m81503b0[m Update README.md
+* [33m943df32[m rename
+* [33md1036b9[m Update README.md
+* [33mc810c12[m Update README.md
+* [33mdb680d8[m Delete .gitignore
+* [33m66d2850[m swm: cleanup headers, fix xerror opcodes, rename lt2->li, drop dead vars
+* [33md2c6901[m[33m ([m[1;33mtag: [m[1;33mv1.2[m[33m, [m[1;31morigin/1.2[m[33m)[m fix: unmng/view race conditions and monocle layout
+* [33mb8fc15d[m Update README.md
+* [33ma523020[m[33m ([m[1;33mtag: [m[1;33mv1.1[m[33m, [m[1;31morigin/1.1[m[33m)[m remove build artifacts, add .gitignore
+* [33m17dab9e[m refactor: apply suckless/POSIX/Plan9 cleanups
+* [33m9653109[m Add BSD systems compatibility
+* [33m5c58292[m Add BSD systems compatibility
+* [33m70f5d94[m Update README.md
+* [33md09c36c[m Revise README for clarity and style consistency
+* [33m03ee6cf[m Update README.md
+* [33mf46517c[m update
+* [33m55bdbdc[m Update README with Alpine Linux screenshot
+* [33m18d83cf[m initial commit
+* [33m426f300[m Update README.md
+* [33m6d23a44[m Update README.md
+* [33mb408ea0[m refactor: surgical improvements
+* [33m75629cc[m Revise README for clarity and consistency
+* [33m329e2a3[m Update LOC badge to reflect under 1000 lines
+* [33m8f78fe3[m Update README.md
+* [33m6e181a0[m Add Star History section to README
+* [33m5cfeaa7[m Fix image links in README.md
+* [33m9a09c96[m Refactor Makefile for improved clarity and structure
+* [33m0ba5665[m Refactor Makefile for improved build process
+* [33m193bf4c[m Refactor Makefile for generic project structure
+* [33mcba81ea[m Fix: bugs
+* [33m213439c[m Rename to swm, final cleanup
+* [33m1787282[m Cleanup: remove unused functions, simplify loops
+* [33mc34735f[m Change copyright holder in LICENSE file
+* [33m92dc946[m Update README with testing note for UNIX-like systems
+* [33m7a0b253[m Rename project to swm and enhance README
+* [33ma724927[m Add image syntax for tiling screenshot in README
+* [33m957f20e[m Update README to include a screenshot link
+* [33m7d54550[m Update AUR package link in README
+* [33m65952dd[m docs: update README - rename to Simple Window Manager
+* [33m1c0f66d[m Initial commit: nwm minimal window manager
+* [33mebe3099[m nwm: minimalistic X11 window manager
+* [33m4f2eff7[m Fix getstate, update version to 1.1
+* [33m6adb0e6[m nwm: minimal window manager
