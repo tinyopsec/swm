@@ -888,7 +888,7 @@ shide(C *c) {
 	for (; c; c = c->snext) {
 		if (VIS(c)) {
 			if ((!lt[li]->ar || c->isfloating) && !c->isfullscreen)
-				rs(c, c->x, c->y, c->w, c->h, 0);
+				rcl(c, c->x, c->y, c->w, c->h);
 		} else {
 			XMoveWindow(d, c->win, -(W(c) + sw), c->y);
 		}
