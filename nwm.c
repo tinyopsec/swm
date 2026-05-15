@@ -874,12 +874,12 @@ setup(void) {
 
 static void
 seturg(C *c, int urg) {
-	XWMHints *wh;
+	XWMHints *wm;
 	c->isurgent = urg;
 	XSetWindowBorder(d, c->win, urg ? uborder : (c == s ? sborder : nborder));
-	if (!(wh = XGetWMHints(d, c->win))) return;
-	wh->flags = urg ? wh->flags | XUrgencyHint : wh->flags & ~XUrgencyHint;
-	XSetWMHints(d, c->win, wh); XFree(wh);
+	if (!(wm = XGetWMHints(d, c->win))) return;
+	wm->flags = urg ? wm->flags | XUrgencyHint : wm->flags & ~XUrgencyHint;
+	XSetWMHints(d, c->win, wm); XFree(wm);
 }
 
 static void
@@ -1074,15 +1074,15 @@ updtype(C *c) {
 
 static void
 updwmh(C *c) {
-	XWMHints *wh;
-	if (!(wh = XGetWMHints(d, c->win))) return;
-	if (c == s && wh->flags & XUrgencyHint) {
-		wh->flags &= ~XUrgencyHint; XSetWMHints(d, c->win, wh);
+	XWMHints *wm;
+	if (!(wm = XGetWMHints(d, c->win))) return;
+	if (c == s && wm->flags & XUrgencyHint) {
+		wm->flags &= ~XUrgencyHint; XSetWMHints(d, c->win, wm);
 	} else {
-		c->isurgent = !!(wh->flags & XUrgencyHint);
+		c->isurgent = !!(wm->flags & XUrgencyHint);
 	}
-	c->neverfocus = !!(wh->flags & InputHint) && !wh->input;
-	XFree(wh);
+	c->neverfocus = !!(wm->flags & InputHint) && !wm->input;
+	XFree(wm);
 }
 
 static void
