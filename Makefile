@@ -24,14 +24,17 @@ X11LIB  = /usr/X11R6/lib
 INCS     = -I${X11INC}
 LIBS     = -L${X11LIB} -lX11
 
-CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\"
-CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Os ${INCS} ${CPPFLAGS}
-#CFLAGS  = -g -std=c99 -pedantic -Wall -Wextra -O0 ${INCS} ${CPPFLAGS}
-LDFLAGS  = ${LIBS}
+CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L \
+           -DVERSION=\"${VERSION}\"
+CFLAGS   = -std=c99 -pedantic -Wall -Wextra \
+           -Wstrict-prototypes -Wmissing-prototypes -Wshadow \
+           -fno-common -O2 -flto ${INCS} ${CPPFLAGS}
+LDFLAGS  = -flto ${LIBS}
 
-# Solaris
-#CFLAGS  = -fast ${INCS} -DVERSION=\"${VERSION}\"
-#LDFLAGS = ${LIBS}
+# Debug: make debug
+DBGFLAGS = -std=c99 -pedantic -Wall -Wextra \
+           -Wstrict-prototypes -Wmissing-prototypes -Wshadow \
+           -fno-common -g -O0 ${INCS} ${CPPFLAGS}
 
 CC = cc
 
@@ -48,15 +51,23 @@ ${OBJ}: nwm.h
 nwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
+debug: ${SRC} nwm.h
+	${CC} ${DBGFLAGS} -o nwm_dbg ${SRC} ${LIBS}
+
+dist: clean
+	mkdir -p nwm-${VERSION}
+	cp -R nwm.c nwm.h Makefile LICENSE nwm-${VERSION}
+	tar -czf nwm-${VERSION}.tar.gz nwm-${VERSION}
+	rm -rf nwm-${VERSION}
+
 clean:
-	rm -f nwm ${OBJ}
+	rm -f nwm nwm_dbg ${OBJ} nwm-${VERSION}.tar.gz
 
 install: all
 	mkdir -p ${DESTDIR}${BINDIR}
-	cp -f nwm ${DESTDIR}${BINDIR}/nwm
-	chmod 755 ${DESTDIR}${BINDIR}/nwm
+	install -m 755 nwm ${DESTDIR}${BINDIR}/nwm
 
 uninstall:
 	rm -f ${DESTDIR}${BINDIR}/nwm
 
-.PHONY: all clean install uninstall
+.PHONY: all clean debug dist install uninstall
