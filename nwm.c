@@ -768,17 +768,16 @@ setfs(C *c, int fs) {
 				XDeleteProperty(d, c->win, netatom[NetWMState]);
 			} else {
 				atoms = (Atom *)p;
-				na = (Atom *)malloc(n * sizeof(Atom));
-				if (na) {
-					for (i = 0, j = 0; i < (int)n; i++)
-						if (atoms[i] != netatom[NetWMFullscreen])
-							na[j++] = atoms[i];
+				if (!(na = (Atom *)malloc(n * sizeof(Atom)))) die("nwm: malloc");
+				for (i = 0, j = 0; i < (int)n; i++)
+					if (atoms[i] != netatom[NetWMFullscreen])
+						na[j++] = atoms[i];
+				if (j == 0)
+					XDeleteProperty(d, c->win, netatom[NetWMState]);
+				else
 					XChangeProperty(d, c->win, netatom[NetWMState], XA_ATOM, 32,
 						PropModeReplace, (unsigned char*)na, j);
-					free(na);
-				} else {
-					XDeleteProperty(d, c->win, netatom[NetWMState]);
-				}
+				free(na);
 			}
 			XFree(p);
 		} else {
@@ -823,7 +822,7 @@ setup(void) {
 	sa.sa_handler = SIG_IGN;
 	sa.sa_flags   = SA_RESTART;
 	sigemptyset(&sa.sa_mask);
-	sigaction(SIGCHLD, &sa, NULL);
+	if (sigaction(SIGCHLD, &sa, NULL) == -1) die("nwm: sigaction");
 
 	screen = DefaultScreen(d);
 	sw = DisplayWidth(d, screen);
@@ -907,7 +906,8 @@ spawn(const A *arg) {
 		if (d) close(ConnectionNumber(d));
 		setsid();
 		execvp(((const char**)arg->v)[0], (char*const*)arg->v);
-		die("nwm: execvp %s", ((const char**)arg->v)[0]);
+		fprintf(stderr, "nwm: execvp %s\n", ((const char**)arg->v)[0]);
+		_exit(1);
 	}
 }
 
@@ -1109,7 +1109,7 @@ xerror(Display *dpy, XErrorEvent *ee) {
 }
 
 static int xe0(Display *dpy, XErrorEvent *e) { (void)dpy; (void)e; return 0; }
-static int xerrorstart(Display *dpy, XErrorEvent *e) { (void)dpy; (void)e; die("nwm: another wm is running"); return 0; }
+static int xerrorstart(Display *dpy, XErrorEvent *e) { (void)dpy; (void)e; fprintf(stderr, "nwm: another wm is running\n"); exit(1); }
 
 static void
 zoom(const A *arg) {
