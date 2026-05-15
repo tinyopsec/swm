@@ -13,9 +13,9 @@ static const int          focusonopen = 1;
 static const float        mfact = 0.5;
 static const int          nmaster = 1;
 
-static const char colnb[] = "#1e1e1e";
-static const char colsb[] = "#7c9e7e";
-static const char colub[] = "#c47f50";
+static const char colnb[] = "#0D2626";
+static const char colsb[] = "#33B1B7";
+static const char colub[] = "#A1FBB9";
 
 static const char *tags[] = { "1","2","3","4","5","6","7","8","9" };
 
