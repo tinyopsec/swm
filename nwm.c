@@ -472,6 +472,7 @@ killcl(const A *arg) {
 		XSetErrorHandler(xe0);
 		XSetCloseDownMode(d, DestroyAll);
 		XKillClient(d, s->win);
+		XSetCloseDownMode(d, RetainPermanent);
 		XSync(d, False);
 		XSetErrorHandler(xerror);
 		XUngrabServer(d);
@@ -764,7 +765,7 @@ setfs(C *c, int fs) {
 	} else if (!fs && c->isfullscreen) {
 		if (XGetWindowProperty(d, c->win, netatom[NetWMState], 0L,
 			1024L, False, XA_ATOM, &type, &fmt, &n, &rem, &p) == Success && p) {
-			if (n == 0) {
+			if (type != XA_ATOM || fmt != 32 || n == 0) {
 				XDeleteProperty(d, c->win, netatom[NetWMState]);
 			} else {
 				atoms = (Atom *)p;
@@ -1061,15 +1062,19 @@ updtype(C *c) {
 	Atom type, *atoms;
 	if (XGetWindowProperty(d, c->win, netatom[NetWMState], 0L,
 		1024L, False, XA_ATOM, &type, &fmt, &n, &rem, &p) == Success && p) {
-		atoms = (Atom *)p;
-		for (i = 0; i < (int)n; i++)
-			if (atoms[i] == netatom[NetWMFullscreen]) { fs = 1; break; }
+		if (type == XA_ATOM && fmt == 32) {
+			atoms = (Atom *)p;
+			for (i = 0; i < (int)n; i++)
+				if (atoms[i] == netatom[NetWMFullscreen]) { fs = 1; break; }
+		}
 		XFree(p);
 	}
 	if (fs && !c->isfullscreen) setfs(c, 1);
 	else if (!fs && c->isfullscreen) setfs(c, 0);
 	if (getatom(c, netatom[NetWMWindowType]) == netatom[NetWMWindowTypeDialog])
 		c->isfloating = 1;
+	else
+		c->isfloating = c->oldstate || c->isfixed;
 }
 
 static void
